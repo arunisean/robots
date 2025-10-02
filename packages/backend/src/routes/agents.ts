@@ -1,359 +1,230 @@
 import { FastifyPluginAsync } from 'fastify';
-import { AgentConfigSchema } from '@multi-agent-platform/shared';
+import { AgentFactory } from '../agents/factory/AgentFactory';
+import { AgentRegistry } from '../agents/registry/AgentRegistry';
+import { AgentRuntimeManager } from '../agents/runtime/AgentRuntimeManager';
+import { AgentTemplateGenerator } from '../agents/templates/AgentTemplateGenerator';
+import { 
+  AgentCategory, 
+  AgentConfig, 
+  AgentStatus,
+  ResourceAllocation 
+} from '@multi-agent-platform/shared';
 import { logger } from '../utils/logger';
 
-interface CreateAgentBody {
-  name: string;
-  description?: string;
-  category: 'work' | 'process' | 'publish' | 'validate';
-  version?: string;
-  config: any;
-  metadata?: any;
+interface AgentInstallRequest {
+  type: string;
+  config: AgentConfig;
+  autoStart?: boolean;
 }
 
-interface UpdateAgentBody {
-  name?: string;
-  description?: string;
-  status?: 'inactive' | 'active' | 'running' | 'error' | 'paused';
-  config?: any;
-  metadata?: any;
+interface AgentUpdateRequest {
+  config: Partial<AgentConfig>;
+}
+
+interface AgentExecuteRequest {
+  input: any;
+  timeout?: number;
 }
 
 export const agentRoutes: FastifyPluginAsync = async (fastify) => {
-  // Authentication middleware
-  const authenticate = async (request: any, reply: any) => {
-    try {
-      await request.jwtVerify();
-    } catch (err) {
-      reply.status(401).send({ success: false, error: 'Unauthorized' });
-    }
-  };
+  const agentFactory = new AgentFactory();
+  const agentRegistry = new AgentRegistry();
+  const runtimeManager = new AgentRuntimeManager();
 
-  // Get all agents for current user
-  fastify.get('/', { preHandler: authenticate }, async (request, reply) => {
-    try {
-      const payload = request.user as any;
-      const { category, status } = request.query as any;
-
-      let agents = await fastify.db.getAgentsByOwner(payload.userId);
-
-      // Apply filters
-      if (category) {
-        agents = agents.filter(agent => agent.category === category);
-      }
-      if (status) {
-        agents = agents.filter(agent => agent.status === status);
-      }
-
-      // Get execution stats for each agent
-      const agentsWithStats = await Promise.all(
-        agents.map(async (agent) => {
-          const statsQuery = `
-            SELECT 
-              COUNT(*) as total_executions,
-              COUNT(CASE WHEN status = 'success' THEN 1 END) as successful_executions,
-              COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_executions,
-              AVG(duration) as avg_execution_time,
-              MAX(start_time) as last_executed
-            FROM execution_records
-            WHERE agent_id = $1
-          `;
-          
-          const statsResult = await fastify.db.query(statsQuery, [agent.id]);
-          const stats = statsResult.rows[0];
-
-          return {
-            ...agent,
-            stats: {
-              totalExecutions: parseInt(stats.total_executions) || 0,
-              successfulExecutions: parseInt(stats.successful_executions) || 0,
-              failedExecutions: parseInt(stats.failed_executions) || 0,
-              avgExecutionTime: parseFloat(stats.avg_execution_time) || 0,
-              lastExecuted: stats.last_executed
-            }
-          };
-        })
-      );
-
-      return reply.send({
-        success: true,
-        agents: agentsWithStats
-      });
-    } catch (error) {
-      logger.error('Error fetching agents:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
+  // Register runtime manager with registry for event coordination
+  agentRegistry.on('agentRegistered', async ({ agent }) => {
+    await runtimeManager.registerAgent(agent);
   });
 
-  // Get specific agent by ID
-  fastify.get('/:id', { preHandler: authenticate }, async (request, reply) => {
-    try {
-      const payload = request.user as any;
-      const { id } = request.params as any;
-
-      const agent = await fastify.db.getAgentById(id);
-
-      if (!agent) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Agent not found'
-        });
-      }
-
-      // Check ownership
-      if (agent.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Get execution history
-      const executionHistory = await fastify.db.getExecutionRecords({
-        agentId: id,
-        limit: 20
-      });
-
-      return reply.send({
-        success: true,
-        agent: {
-          ...agent,
-          executionHistory
-        }
-      });
-    } catch (error) {
-      logger.error('Error fetching agent:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
+  agentRegistry.on('agentUnregistered', async ({ agentId }) => {
+    await runtimeManager.unregisterAgent(agentId);
   });
 
-  // Create new agent
-  fastify.post<{ Body: CreateAgentBody }>('/', { preHandler: authenticate }, async (request, reply) => {
+  /**
+   * Get available agent types and templates
+   */
+  fastify.get('/types', async (request, reply) => {
     try {
-      const payload = request.user as any;
-      const { name, description, category, version = '1.0.0', config, metadata = {} } = request.body;
-
-      // Validate required fields
-      if (!name || !category || !config) {
-        return reply.status(400).send({
-          success: false,
-          error: 'Missing required fields: name, category, config'
-        });
-      }
-
-      // Validate category
-      const validCategories = ['work', 'process', 'publish', 'validate'];
-      if (!validCategories.includes(category)) {
-        return reply.status(400).send({
-          success: false,
-          error: 'Invalid category. Must be one of: work, process, publish, validate'
-        });
-      }
-
-      // Validate config structure (basic validation)
-      try {
-        const configWithDefaults = {
-          id: `${category}-${Date.now()}`,
-          name,
-          description: description || '',
-          version,
-          category,
-          enabled: true,
-          resources: {
-            memory: 512,
-            cpu: 1,
-            timeout: 300,
-            storage: 100
-          },
-          settings: config
-        };
-
-        // Validate using Zod schema
-        AgentConfigSchema.parse(configWithDefaults);
-      } catch (validationError) {
-        return reply.status(400).send({
-          success: false,
-          error: 'Invalid agent configuration',
-          details: validationError
-        });
-      }
-
-      const agentData = {
-        name,
-        description: description || '',
-        category,
-        version,
-        config,
-        metadata,
-        ownerId: payload.userId
+      const availableTypes = agentFactory.getAvailableTypes();
+      const templatesByCategory = {
+        work: AgentTemplateGenerator.getAvailableTemplates(AgentCategory.WORK),
+        process: AgentTemplateGenerator.getAvailableTemplates(AgentCategory.PROCESS),
+        publish: AgentTemplateGenerator.getAvailableTemplates(AgentCategory.PUBLISH),
+        validate: AgentTemplateGenerator.getAvailableTemplates(AgentCategory.VALIDATE)
       };
 
-      const agent = await fastify.db.createAgent(agentData);
-
-      // Log user activity
-      await fastify.db.query(
-        'INSERT INTO user_activities (user_id, type, description, metadata, ip_address) VALUES ($1, $2, $3, $4, $5)',
-        [
-          payload.userId,
-          'agent_created',
-          `Created ${category} agent: ${name}`,
-          { agentId: agent.id, category },
-          request.ip
-        ]
-      );
-
-      logger.info(`Agent created: ${agent.id} by user ${payload.walletAddress}`);
-
-      return reply.status(201).send({
-        success: true,
-        agent
-      });
-    } catch (error) {
-      logger.error('Error creating agent:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  });
-
-  // Update agent
-  fastify.put<{ Body: UpdateAgentBody }>('/:id', { preHandler: authenticate }, async (request, reply) => {
-    try {
-      const payload = request.user as any;
-      const { id } = request.params as any;
-      const updates = request.body;
-
-      // Check if agent exists and user owns it
-      const existingAgent = await fastify.db.getAgentById(id);
-      if (!existingAgent) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Agent not found'
-        });
-      }
-
-      if (existingAgent.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Validate status if provided
-      if (updates.status) {
-        const validStatuses = ['inactive', 'active', 'running', 'error', 'paused'];
-        if (!validStatuses.includes(updates.status)) {
-          return reply.status(400).send({
-            success: false,
-            error: 'Invalid status'
-          });
-        }
-      }
-
-      const updatedAgent = await fastify.db.updateAgent(id, updates);
-
-      // Log user activity
-      await fastify.db.query(
-        'INSERT INTO user_activities (user_id, type, description, metadata, ip_address) VALUES ($1, $2, $3, $4, $5)',
-        [
-          payload.userId,
-          'agent_updated',
-          `Updated agent: ${existingAgent.name}`,
-          { agentId: id, updates: Object.keys(updates) },
-          request.ip
-        ]
-      );
-
-      logger.info(`Agent updated: ${id} by user ${payload.walletAddress}`);
-
       return reply.send({
         success: true,
-        agent: updatedAgent
+        data: {
+          availableTypes,
+          templates: templatesByCategory
+        }
       });
     } catch (error) {
-      logger.error('Error updating agent:', error);
+      logger.error('Error getting agent types:', error);
       return reply.status(500).send({
         success: false,
-        error: 'Internal server error'
+        error: 'Failed to get agent types'
       });
     }
   });
 
-  // Delete agent
-  fastify.delete('/:id', { preHandler: authenticate }, async (request, reply) => {
+  /**
+   * Generate agent configuration template
+   */
+  fastify.post<{ Body: { category: AgentCategory; type: string; options?: any } }>('/template/config', async (request, reply) => {
     try {
-      const payload = request.user as any;
-      const { id } = request.params as any;
+      const { category, type, options } = request.body;
 
-      // Check if agent exists and user owns it
-      const existingAgent = await fastify.db.getAgentById(id);
-      if (!existingAgent) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Agent not found'
-        });
-      }
-
-      if (existingAgent.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Check if agent is currently running
-      if (existingAgent.status === 'running') {
+      if (!category || !type) {
         return reply.status(400).send({
           success: false,
-          error: 'Cannot delete running agent. Please stop it first.'
+          error: 'Category and type are required'
         });
       }
 
-      await fastify.db.deleteAgent(id);
-
-      // Log user activity
-      await fastify.db.query(
-        'INSERT INTO user_activities (user_id, type, description, metadata, ip_address) VALUES ($1, $2, $3, $4, $5)',
-        [
-          payload.userId,
-          'agent_deleted',
-          `Deleted agent: ${existingAgent.name}`,
-          { agentId: id, category: existingAgent.category },
-          request.ip
-        ]
-      );
-
-      logger.info(`Agent deleted: ${id} by user ${payload.walletAddress}`);
+      const template = AgentTemplateGenerator.generateConfigTemplate(category, type, options);
 
       return reply.send({
         success: true,
-        message: 'Agent deleted successfully'
+        data: template
       });
     } catch (error) {
-      logger.error('Error deleting agent:', error);
+      logger.error('Error generating config template:', error);
       return reply.status(500).send({
         success: false,
-        error: 'Internal server error'
+        error: 'Failed to generate config template'
       });
     }
   });
 
-  // Get agent execution history
-  fastify.get('/:id/executions', { preHandler: authenticate }, async (request, reply) => {
+  /**
+   * Generate agent code template
+   */
+  fastify.post<{ Body: { category: AgentCategory; type: string; className: string; options?: any } }>('/template/code', async (request, reply) => {
     try {
-      const payload = request.user as any;
-      const { id } = request.params as any;
-      const { limit = 50, offset = 0, status } = request.query as any;
+      const { category, type, className, options } = request.body;
 
-      // Check if agent exists and user owns it
-      const agent = await fastify.db.getAgentById(id);
+      if (!category || !type || !className) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Category, type, and className are required'
+        });
+      }
+
+      const codeTemplate = AgentTemplateGenerator.generateCodeTemplate(category, type, className, options);
+      const testTemplate = AgentTemplateGenerator.generateTestTemplate(category, className, type);
+
+      return reply.send({
+        success: true,
+        data: {
+          code: codeTemplate,
+          test: testTemplate
+        }
+      });
+    } catch (error) {
+      logger.error('Error generating code template:', error);
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to generate code template'
+      });
+    }
+  });
+
+  /**
+   * Install (create and register) a new agent
+   */
+  fastify.post<{ Body: AgentInstallRequest }>('/install', async (request, reply) => {
+    try {
+      const { type, config, autoStart = false } = request.body;
+
+      if (!type || !config) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Type and config are required'
+        });
+      }
+
+      // Validate configuration
+      const validation = agentFactory.validateConfigForType(type, config);
+      if (!validation.success) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Invalid configuration',
+          details: validation.errors
+        });
+      }
+
+      // Create agent
+      const agent = await agentFactory.createAgent(type, config);
+
+      // Register agent
+      await agentRegistry.register(agent);
+
+      // Auto-start if requested
+      if (autoStart) {
+        await runtimeManager.startAgent(agent.id);
+      }
+
+      logger.info(`Agent installed successfully: ${agent.id} (${type})`);
+
+      return reply.send({
+        success: true,
+        data: {
+          agentId: agent.id,
+          name: agent.name,
+          type,
+          status: autoStart ? AgentStatus.RUNNING : AgentStatus.INACTIVE,
+          config: agent.validateConfig(config)
+        }
+      });
+    } catch (error) {
+      logger.error('Error installing agent:', error);
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to install agent'
+      });
+    }
+  });
+
+  /**
+   * Get all agents
+   */
+  fastify.get('/list', async (request, reply) => {
+    try {
+      const agents = agentRegistry.list();
+      const agentList = agents.map(agent => ({
+        id: agent.id,
+        name: agent.name,
+        category: agent.category,
+        version: agent.version,
+        description: agent.description,
+        status: agent.getStatus(),
+        metrics: agent.getMetrics(),
+        isRunning: runtimeManager.getRunningAgents().includes(agent.id)
+      }));
+
+      return reply.send({
+        success: true,
+        data: agentList
+      });
+    } catch (error) {
+      logger.error('Error listing agents:', error);
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to list agents'
+      });
+    }
+  });
+
+  /**
+   * Get agent by ID
+   */
+  fastify.get<{ Params: { agentId: string } }>('/agent/:agentId', async (request, reply) => {
+    try {
+      const { agentId } = request.params;
+      const agent = agentRegistry.get(agentId);
+
       if (!agent) {
         return reply.status(404).send({
           success: false,
@@ -361,32 +232,329 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      if (agent.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      const filters: any = { agentId: id, limit, offset };
-      if (status) filters.status = status;
-
-      const executions = await fastify.db.getExecutionRecords(filters);
+      const isRunning = runtimeManager.getRunningAgents().includes(agentId);
+      const resourceUsage = isRunning ? runtimeManager.getAgentResourceUsage(agentId) : null;
+      const executionMetrics = isRunning ? runtimeManager.getAgentMetrics(agentId) : null;
 
       return reply.send({
         success: true,
-        executions,
-        pagination: {
-          limit: parseInt(limit),
-          offset: parseInt(offset)
+        data: {
+          id: agent.id,
+          name: agent.name,
+          category: agent.category,
+          version: agent.version,
+          description: agent.description,
+          status: agent.getStatus(),
+          metrics: agent.getMetrics(),
+          isRunning,
+          resourceUsage,
+          executionMetrics
         }
       });
     } catch (error) {
-      logger.error('Error fetching agent executions:', error);
+      logger.error('Error getting agent:', error);
       return reply.status(500).send({
         success: false,
-        error: 'Internal server error'
+        error: 'Failed to get agent'
       });
     }
+  });
+
+  /**
+   * Start an agent
+   */
+  fastify.post<{ Params: { agentId: string }; Body: { resources?: ResourceAllocation } }>('/agent/:agentId/start', async (request, reply) => {
+    try {
+      const { agentId } = request.params;
+      const { resources } = request.body || {};
+
+      const agent = agentRegistry.get(agentId);
+      if (!agent) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Agent not found'
+        });
+      }
+
+      if (runtimeManager.getRunningAgents().includes(agentId)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Agent is already running'
+        });
+      }
+
+      await runtimeManager.startAgent(agentId, resources);
+
+      logger.info(`Agent started: ${agentId}`);
+
+      return reply.send({
+        success: true,
+        data: {
+          agentId,
+          status: AgentStatus.RUNNING,
+          message: 'Agent started successfully'
+        }
+      });
+    } catch (error) {
+      logger.error('Error starting agent:', error);
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to start agent'
+      });
+    }
+  });
+
+  /**
+   * Stop an agent
+   */
+  fastify.post<{ Params: { agentId: string } }>('/agent/:agentId/stop', async (request, reply) => {
+    try {
+      const { agentId } = request.params;
+
+      const agent = agentRegistry.get(agentId);
+      if (!agent) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Agent not found'
+        });
+      }
+
+      if (!runtimeManager.getRunningAgents().includes(agentId)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Agent is not running'
+        });
+      }
+
+      await runtimeManager.stopAgent(agentId);
+
+      logger.info(`Agent stopped: ${agentId}`);
+
+      return reply.send({
+        success: true,
+        data: {
+          agentId,
+          status: AgentStatus.INACTIVE,
+          message: 'Agent stopped successfully'
+        }
+      });
+    } catch (error) {
+      logger.error('Error stopping agent:', error);
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to stop agent'
+      });
+    }
+  });
+
+  /**
+   * Execute an agent
+   */
+  fastify.post<{ Params: { agentId: string }; Body: AgentExecuteRequest }>('/agent/:agentId/execute', async (request, reply) => {
+    try {
+      const { agentId } = request.params;
+      const { input, timeout } = request.body;
+
+      const agent = agentRegistry.get(agentId);
+      if (!agent) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Agent not found'
+        });
+      }
+
+      if (!runtimeManager.getRunningAgents().includes(agentId)) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Agent is not running'
+        });
+      }
+
+      const result = await runtimeManager.executeAgent(agentId, input);
+
+      return reply.send({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      logger.error('Error executing agent:', error);
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to execute agent'
+      });
+    }
+  });
+
+  /**
+   * Update agent configuration
+   */
+  fastify.put<{ Params: { agentId: string }; Body: AgentUpdateRequest }>('/agent/:agentId/config', async (request, reply) => {
+    try {
+      const { agentId } = request.params;
+      const { config } = request.body;
+
+      const agent = agentRegistry.get(agentId);
+      if (!agent) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Agent not found'
+        });
+      }
+
+      await agentRegistry.updateAgentConfig(agentId, config);
+
+      logger.info(`Agent configuration updated: ${agentId}`);
+
+      return reply.send({
+        success: true,
+        data: {
+          agentId,
+          message: 'Configuration updated successfully'
+        }
+      });
+    } catch (error) {
+      logger.error('Error updating agent config:', error);
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to update agent configuration'
+      });
+    }
+  });
+
+  /**
+   * Uninstall (remove) an agent
+   */
+  fastify.delete<{ Params: { agentId: string } }>('/agent/:agentId', async (request, reply) => {
+    try {
+      const { agentId } = request.params;
+
+      const agent = agentRegistry.get(agentId);
+      if (!agent) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Agent not found'
+        });
+      }
+
+      // Stop agent if running
+      if (runtimeManager.getRunningAgents().includes(agentId)) {
+        await runtimeManager.stopAgent(agentId);
+      }
+
+      // Unregister agent
+      await agentRegistry.unregister(agentId);
+
+      logger.info(`Agent uninstalled: ${agentId}`);
+
+      return reply.send({
+        success: true,
+        data: {
+          agentId,
+          message: 'Agent uninstalled successfully'
+        }
+      });
+    } catch (error) {
+      logger.error('Error uninstalling agent:', error);
+      return reply.status(500).send({
+        success: false,
+        error: error.message || 'Failed to uninstall agent'
+      });
+    }
+  });
+
+  /**
+   * Get runtime statistics
+   */
+  fastify.get('/stats', async (request, reply) => {
+    try {
+      const runtimeStats = runtimeManager.getRuntimeStats();
+      const registryStats = agentRegistry.getStats();
+
+      return reply.send({
+        success: true,
+        data: {
+          runtime: runtimeStats,
+          registry: registryStats
+        }
+      });
+    } catch (error) {
+      logger.error('Error getting stats:', error);
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to get statistics'
+      });
+    }
+  });
+
+  /**
+   * Perform health check on all agents
+   */
+  fastify.get('/health', async (request, reply) => {
+    try {
+      const runtimeHealth = await runtimeManager.performHealthCheck();
+      const registryHealth = await agentRegistry.performHealthCheck();
+
+      return reply.send({
+        success: true,
+        data: {
+          runtime: runtimeHealth,
+          registry: registryHealth,
+          timestamp: new Date()
+        }
+      });
+    } catch (error) {
+      logger.error('Error performing health check:', error);
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to perform health check'
+      });
+    }
+  });
+
+  /**
+   * Get agents by status
+   */
+  fastify.get<{ Querystring: { status?: string; category?: string } }>('/filter', async (request, reply) => {
+    try {
+      const { status, category } = request.query;
+      let agents = agentRegistry.list();
+
+      if (category) {
+        agents = agentRegistry.list(category as AgentCategory);
+      }
+
+      if (status) {
+        agents = agentRegistry.getAgentsByStatus(status);
+      }
+
+      const agentList = agents.map(agent => ({
+        id: agent.id,
+        name: agent.name,
+        category: agent.category,
+        version: agent.version,
+        description: agent.description,
+        status: agent.getStatus(),
+        metrics: agent.getMetrics(),
+        isRunning: runtimeManager.getRunningAgents().includes(agent.id)
+      }));
+
+      return reply.send({
+        success: true,
+        data: agentList
+      });
+    } catch (error) {
+      logger.error('Error filtering agents:', error);
+      return reply.status(500).send({
+        success: false,
+        error: 'Failed to filter agents'
+      });
+    }
+  });
+
+  // Cleanup on server shutdown
+  fastify.addHook('onClose', async () => {
+    logger.info('Shutting down agent management system');
+    await runtimeManager.shutdown();
+    await agentRegistry.shutdown();
   });
 };
