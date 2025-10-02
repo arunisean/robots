@@ -1,9 +1,10 @@
-import { AgentCategory, AgentConfig } from '@multi-agent-platform/shared';
+import { AgentCategory, AgentConfig, ResourceAllocation } from '@multi-agent-platform/shared';
 import { IAgent, IAgentFactory } from '../base/IAgent';
 import { WorkAgent } from '../work/WorkAgent';
 import { ProcessAgent } from '../process/ProcessAgent';
 import { PublishAgent } from '../publish/PublishAgent';
 import { ValidateAgent } from '../validate/ValidateAgent';
+import { AgentRuntimeManager } from '../runtime/AgentRuntimeManager';
 import { Logger } from '../../utils/logger';
 
 /**
@@ -13,10 +14,13 @@ import { Logger } from '../../utils/logger';
 export class AgentFactory implements IAgentFactory {
   private logger: Logger;
   private agentTypes: Map<string, AgentConstructor> = new Map();
+  private runtimeManager: AgentRuntimeManager;
 
-  constructor() {
+  constructor(runtimeManager?: AgentRuntimeManager) {
     this.logger = new Logger('AgentFactory');
+    this.runtimeManager = runtimeManager || new AgentRuntimeManager();
     this.registerDefaultAgentTypes();
+    this.setupEventHandlers();
   }
 
   /**
@@ -45,6 +49,9 @@ export class AgentFactory implements IAgentFactory {
 
       // Initialize agent with configuration
       await agent.initialize(config);
+
+      // Register with runtime manager
+      await this.runtimeManager.registerAgent(agent);
 
       this.logger.info(`Successfully created agent: ${config.name} (${type})`);
       return agent;
@@ -161,6 +168,83 @@ export class AgentFactory implements IAgentFactory {
     }
 
     return results;
+  }
+
+  /**
+   * Start an agent in sandbox environment
+   */
+  async startAgent(agentId: string, resourceAllocation?: ResourceAllocation): Promise<void> {
+    this.logger.info(`Starting agent: ${agentId}`);
+    await this.runtimeManager.startAgent(agentId, resourceAllocation);
+  }
+
+  /**
+   * Stop an agent
+   */
+  async stopAgent(agentId: string): Promise<void> {
+    this.logger.info(`Stopping agent: ${agentId}`);
+    await this.runtimeManager.stopAgent(agentId);
+  }
+
+  /**
+   * Execute an agent with input data
+   */
+  async executeAgent(agentId: string, input: any): Promise<any> {
+    return await this.runtimeManager.executeAgent(agentId, input);
+  }
+
+  /**
+   * Get runtime manager instance
+   */
+  getRuntimeManager(): AgentRuntimeManager {
+    return this.runtimeManager;
+  }
+
+  /**
+   * Get runtime statistics
+   */
+  getRuntimeStats(): any {
+    return this.runtimeManager.getRuntimeStats();
+  }
+
+  /**
+   * Perform health check on all agents
+   */
+  async performHealthCheck(): Promise<any[]> {
+    return await this.runtimeManager.performHealthCheck();
+  }
+
+  /**
+   * Shutdown factory and runtime manager
+   */
+  async shutdown(): Promise<void> {
+    this.logger.info('Shutting down agent factory');
+    await this.runtimeManager.shutdown();
+  }
+
+  /**
+   * Setup event handlers
+   */
+  private setupEventHandlers(): void {
+    this.runtimeManager.on('agentStarted', (data) => {
+      this.logger.info(`Agent started: ${data.agentId}`);
+      this.emit('agentStarted', data);
+    });
+
+    this.runtimeManager.on('agentStopped', (data) => {
+      this.logger.info(`Agent stopped: ${data.agentId}`);
+      this.emit('agentStopped', data);
+    });
+
+    this.runtimeManager.on('agentError', (data) => {
+      this.logger.error(`Agent error: ${data.agentId}`, data.error);
+      this.emit('agentError', data);
+    });
+
+    this.runtimeManager.on('resourceLimitExceeded', (data) => {
+      this.logger.warn(`Resource limit exceeded: ${data.agentId}`, data);
+      this.emit('resourceLimitExceeded', data);
+    });
   }
 
   /**
