@@ -3,8 +3,11 @@ export * from './types/agent';
 export * from './types/user';
 
 // Export specific agent types
+export {
+  DataSourceType
+} from './types/work-agent';
+
 export type {
-  DataSourceType,
   DataSource,
   CollectedData,
   WorkAgentConfig,
@@ -12,8 +15,11 @@ export type {
   WorkAgentOutput
 } from './types/work-agent';
 
+export {
+  ProcessingType
+} from './types/process-agent';
+
 export type {
-  ProcessingType,
   ProcessingRule,
   ProcessedData,
   ProcessAgentConfig,

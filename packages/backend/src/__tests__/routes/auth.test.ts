@@ -9,7 +9,7 @@ jest.mock('../../services/database');
 jest.mock('../../services/redis');
 jest.mock('@multi-agent-platform/shared', () => ({
   generateNonce: jest.fn(() => 'test-nonce'),
-  createSignMessage: jest.fn(() => 'test-message'),
+  createSignMessage: jest.fn((walletAddress, nonce) => `Please sign this message to authenticate: ${nonce}`),
   verifyEthereumSignature: jest.fn(() => true),
   isValidEthereumAddress: jest.fn(() => true)
 }));
@@ -57,7 +57,7 @@ describe('Auth Routes', () => {
       expect(response.statusCode).toBe(200);
       const body = JSON.parse(response.body);
       expect(body.nonce).toBe('test-nonce');
-      expect(body.message).toBe('test-message');
+      expect(body.message).toBe('Please sign this message to authenticate: test-nonce');
       expect(mockRedis.set).toHaveBeenCalledWith(
         'nonce:0x1234567890123456789012345678901234567890',
         'test-nonce',
@@ -101,10 +101,14 @@ describe('Auth Routes', () => {
     const validPayload = {
       walletAddress: '0x1234567890123456789012345678901234567890',
       signature: 'valid-signature',
-      message: 'test-message'
+      message: 'Please sign this message to authenticate: test-nonce'
     };
 
     it('should login successfully for existing user', async () => {
+      const { isValidEthereumAddress, verifyEthereumSignature } = require('@multi-agent-platform/shared');
+      isValidEthereumAddress.mockReturnValue(true);
+      verifyEthereumSignature.mockReturnValue(true);
+      
       const mockUser = {
         id: 'user-id',
         wallet_address: '0x1234567890123456789012345678901234567890',
@@ -135,11 +139,15 @@ describe('Auth Routes', () => {
         walletAddress: mockUser.wallet_address,
         preferences: mockUser.preferences,
         profile: mockUser.profile,
-        createdAt: mockUser.created_at
+        createdAt: mockUser.created_at.toISOString()
       });
     });
 
     it('should create new user and login', async () => {
+      const { isValidEthereumAddress, verifyEthereumSignature } = require('@multi-agent-platform/shared');
+      isValidEthereumAddress.mockReturnValue(true);
+      verifyEthereumSignature.mockReturnValue(true);
+      
       const mockUser = {
         id: 'new-user-id',
         wallet_address: '0x1234567890123456789012345678901234567890',
@@ -169,6 +177,8 @@ describe('Auth Routes', () => {
     });
 
     it('should return error for missing nonce', async () => {
+      const { isValidEthereumAddress } = require('@multi-agent-platform/shared');
+      isValidEthereumAddress.mockReturnValue(true); // Ensure address validation passes
       mockRedis.get.mockResolvedValue(null);
 
       const response = await app.inject({
@@ -184,7 +194,8 @@ describe('Auth Routes', () => {
     });
 
     it('should return error for invalid signature', async () => {
-      const { verifyEthereumSignature } = require('@multi-agent-platform/shared');
+      const { verifyEthereumSignature, isValidEthereumAddress } = require('@multi-agent-platform/shared');
+      isValidEthereumAddress.mockReturnValue(true); // Ensure address validation passes
       verifyEthereumSignature.mockReturnValue(false);
       mockRedis.get.mockResolvedValue('test-nonce');
 
