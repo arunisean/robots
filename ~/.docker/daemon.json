@@ -1,0 +1,10 @@
+{
+  "registry-mirrors": [
+    "https://dockerproxy.net"
+  ],
+  "debug": false,
+  "experimental": false,
+  "features": {
+    "buildkit": true
+  }
+}
