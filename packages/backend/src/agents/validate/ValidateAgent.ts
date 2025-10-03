@@ -326,14 +326,14 @@ export abstract class ValidateAgent extends BaseAgent implements IValidateAgent 
   /**
    * Generate unique validation ID
    */
-  private generateValidationId(): string {
+  protected generateValidationId(): string {
     return `val-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 
   /**
    * Generate unique alert ID
    */
-  private generateAlertId(): string {
+  protected generateAlertId(): string {
     return `alert-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }
