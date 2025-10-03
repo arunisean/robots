@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Agent Platform</title>
+    <link rel="stylesheet" href="styles/popup.css">
+</head>
+<body>
+    <div id="app">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <img src="icons/icon32.png" alt="Multi-Agent Platform">
+                <h1>Multi-Agent</h1>
+            </div>
+            <div class="connection-status" id="connectionStatus">
+                <span class="status-indicator" id="statusIndicator"></span>
+                <span class="status-text" id="statusText">Connecting...</span>
+            </div>
+        </header>
+
+        <!-- Wallet Connection -->
+        <section id="walletSection" class="section">
+            <div class="wallet-connect">
+                <button id="connectWalletBtn" class="btn btn-primary">
+                    <span class="btn-icon">🔗</span>
+                    Connect Wallet
+                </button>
+                <div id="walletInfo" class="wallet-info hidden">
+                    <div class="wallet-address" id="walletAddress"></div>
+                    <button id="disconnectBtn" class="btn btn-secondary btn-sm">Disconnect</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Agent Dashboard -->
+        <section id="agentSection" class="section hidden">
+            <!-- Agent Stats -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalAgents">0</div>
+                    <div class="stat-label">Total Agents</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="runningAgents">0</div>
+                    <div class="stat-label">Running</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="totalExecutions">0</div>
+                    <div class="stat-label">Executions</div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3>Quick Actions</h3>
+                <div class="action-buttons">
+                    <button id="collectDataBtn" class="btn btn-action">
+                        <span class="btn-icon">📊</span>
+                        Collect Data
+                    </button>
+                    <button id="processContentBtn" class="btn btn-action">
+                        <span class="btn-icon">⚙️</span>
+                        Process Content
+                    </button>
+                    <button id="publishContentBtn" class="btn btn-action">
+                        <span class="btn-icon">📤</span>
+                        Publish Content
+                    </button>
+                </div>
+            </div>
+
+            <!-- Agent List -->
+            <div class="agent-list">
+                <div class="section-header">
+                    <h3>Your Agents</h3>
+                    <button id="refreshAgentsBtn" class="btn btn-icon-only">
+                        <span class="btn-icon">🔄</span>
+                    </button>
+                </div>
+                <div id="agentsList" class="agents-container">
+                    <!-- Agents will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="recent-activity">
+                <h3>Recent Activity</h3>
+                <div id="activityList" class="activity-container">
+                    <!-- Activity items will be loaded here -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Loading State -->
+        <section id="loadingSection" class="section">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>Loading...</p>
+            </div>
+        </section>
+
+        <!-- Error State -->
+        <section id="errorSection" class="section hidden">
+            <div class="error">
+                <div class="error-icon">⚠️</div>
+                <h3>Connection Error</h3>
+                <p id="errorMessage">Unable to connect to the platform</p>
+                <button id="retryBtn" class="btn btn-primary">Retry</button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-links">
+                <button id="settingsBtn" class="btn btn-link">Settings</button>
+                <button id="helpBtn" class="btn btn-link">Help</button>
+                <button id="dashboardBtn" class="btn btn-link">Dashboard</button>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Templates -->
+    <template id="agentItemTemplate">
+        <div class="agent-item" data-agent-id="">
+            <div class="agent-info">
+                <div class="agent-name"></div>
+                <div class="agent-status"></div>
+                <div class="agent-type"></div>
+            </div>
+            <div class="agent-actions">
+                <button class="btn btn-sm btn-secondary agent-start-btn">Start</button>
+                <button class="btn btn-sm btn-danger agent-stop-btn hidden">Stop</button>
+                <button class="btn btn-sm btn-icon-only agent-menu-btn">⋮</button>
+            </div>
+        </div>
+    </template>
+
+    <template id="activityItemTemplate">
+        <div class="activity-item">
+            <div class="activity-icon"></div>
+            <div class="activity-content">
+                <div class="activity-title"></div>
+                <div class="activity-time"></div>
+            </div>
+            <div class="activity-status"></div>
+        </div>
+    </template>
+
+    <script src="popup.js"></script>
+</body>
+</html>
