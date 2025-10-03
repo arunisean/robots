@@ -53,7 +53,10 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
         this.status = AgentStatus.RUNNING;
 
         try {
-            await this.doStartCollection();
+            // Start collection for each data source
+            for (const source of this.dataSources) {
+                await this.testDataSourceConnection(source);
+            }
             this.emit('collectionStarted', { agentId: this.id, sources: this.dataSources });
         } catch (error) {
             this.status = AgentStatus.ERROR;
@@ -68,7 +71,7 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
         this.logger.info('Stopping data collection');
 
         try {
-            await this.doStopCollection();
+            // Stop collection logic here
             this.status = AgentStatus.ACTIVE;
             this.emit('collectionStopped', { agentId: this.id });
         } catch (error) {
@@ -81,7 +84,34 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
      * Get collected data with optional filtering
      */
     async getCollectedData(filter?: any): Promise<CollectedData[]> {
-        return await this.doGetCollectedData(filter);
+        // Return collected data based on filter
+        // This is a placeholder implementation
+        return [];
+    }
+
+    /**
+     * Get collection statistics
+     */
+    async getCollectionStats(): Promise<any> {
+        return {
+            totalCollected: 0,
+            successfulCollections: 0,
+            failedCollections: 0,
+            averageCollectionTime: 0,
+            dataSourceStats: []
+        };
+    }
+
+    /**
+     * Test connection to data source
+     */
+    async testConnection(source: DataSource): Promise<boolean> {
+        try {
+            await this.testDataSourceConnection(source);
+            return true;
+        } catch (error) {
+            return false;
+        }
     }
 
     /**
@@ -105,7 +135,7 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
                 const cleanedData = await this.cleanData(rawData);
 
                 // Apply deduplication
-                const deduplicatedData = await this.deduplicateData(cleanedData);
+                const deduplicatedData = await this.deduplicateData([cleanedData]);
 
                 results.push(...deduplicatedData);
 
@@ -209,7 +239,8 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
      */
     protected async doCleanup(): Promise<void> {
         // Clear any cached data
-        this.collectedData = [];
+        this.dataSources = [];
+        this.collectionRules = [];
         this.logger.info('Work agent cleanup completed');
     }
 

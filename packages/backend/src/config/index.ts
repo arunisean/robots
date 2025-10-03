@@ -72,11 +72,11 @@ export const config = {
   isTest: process.env.NODE_ENV === 'test',
 };
 
-// 验证必需的环境变量
-const requiredEnvVars = [
+// 验证必需的环境变量（开发模式下放宽要求）
+const requiredEnvVars = config.isProduction ? [
   'DATABASE_URL',
   'JWT_SECRET',
-];
+] : [];
 
 const missingEnvVars = requiredEnvVars.filter(envVar => !process.env[envVar]);
 

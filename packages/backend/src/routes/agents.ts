@@ -180,9 +180,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error installing agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to install agent';
       return reply.status(500).send({
         success: false,
-        error: error.message || 'Failed to install agent'
+        error: errorMessage
       });
     }
   });
@@ -297,9 +298,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error starting agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start agent';
       return reply.status(500).send({
         success: false,
-        error: error.message || 'Failed to start agent'
+        error: errorMessage
       });
     }
   });
@@ -340,9 +342,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error stopping agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to stop agent';
       return reply.status(500).send({
         success: false,
-        error: error.message || 'Failed to stop agent'
+        error: errorMessage
       });
     }
   });
@@ -378,9 +381,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error executing agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to execute agent';
       return reply.status(500).send({
         success: false,
-        error: error.message || 'Failed to execute agent'
+        error: errorMessage
       });
     }
   });
@@ -414,9 +418,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error updating agent config:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update agent configuration';
       return reply.status(500).send({
         success: false,
-        error: error.message || 'Failed to update agent configuration'
+        error: errorMessage
       });
     }
   });
@@ -455,9 +460,10 @@ export const agentRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error uninstalling agent:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to uninstall agent';
       return reply.status(500).send({
         success: false,
-        error: error.message || 'Failed to uninstall agent'
+        error: errorMessage
       });
     }
   });

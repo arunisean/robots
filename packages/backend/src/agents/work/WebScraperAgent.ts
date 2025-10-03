@@ -40,7 +40,8 @@ export class WebScraperAgent extends WorkAgent {
           } catch (error) {
             // In development/test environment, connection test may fail
             // Log warning but don't fail initialization
-            this.logger.warn(`Could not test connection to ${source.url}: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.warn(`Could not test connection to ${source.url}: ${errorMessage}`);
           }
         }
       }
@@ -72,8 +73,7 @@ export class WebScraperAgent extends WorkAgent {
           'Accept-Encoding': 'gzip, deflate',
           'Connection': 'keep-alive',
           ...target.config?.headers
-        },
-        timeout: target.config?.timeout || 30000
+        }
       });
 
       if (!response.ok) {
@@ -152,8 +152,7 @@ export class WebScraperAgent extends WorkAgent {
         method: 'HEAD',
         headers: {
           'User-Agent': 'Multi-Agent-Platform Web Scraper 1.0'
-        },
-        timeout: 10000
+        }
       });
 
       if (!response.ok) {
@@ -167,7 +166,8 @@ export class WebScraperAgent extends WorkAgent {
       }
 
     } catch (error) {
-      throw new Error(`Cannot connect to web page ${source.url}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Cannot connect to web page ${source.url}: ${errorMessage}`);
     }
   }
 
@@ -237,7 +237,8 @@ export class WebScraperAgent extends WorkAgent {
       return scrapedData;
     } catch (error) {
       this.logger.error('Error scraping page content:', error);
-      throw new Error(`Failed to scrape page content: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to scrape page content: ${errorMessage}`);
     }
   }
 
@@ -422,7 +423,7 @@ export class WebScraperAgent extends WorkAgent {
           links.push({
             url: href,
             text: text,
-            type: this.getLinkType(href)
+            type: this.getLinkType(href, baseUrl)
           });
         }
       }
@@ -536,7 +537,7 @@ export class WebScraperAgent extends WorkAgent {
   /**
    * Get link type
    */
-  private getLinkType(url: string): string {
+  private getLinkType(url: string, baseUrl: string): string {
     if (url.includes('mailto:')) return 'email';
     if (url.includes('tel:')) return 'phone';
     if (url.startsWith('#')) return 'anchor';

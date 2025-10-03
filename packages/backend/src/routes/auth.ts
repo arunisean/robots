@@ -47,7 +47,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       // 将nonce存储到Redis，设置5分钟过期
       const nonceKey = `nonce:${walletAddress}`;
-      await fastify.redis.set(nonceKey, nonce, 300);
+      if (fastify.redis) {
+        await fastify.redis.set(nonceKey, nonce, 300);
+      }
 
       logger.info(`Generated nonce for wallet: ${walletAddress}`);
 
@@ -89,7 +91,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
     try {
       // 从Redis获取nonce
       const nonceKey = `nonce:${walletAddress}`;
-      const storedNonce = await fastify.redis.get(nonceKey);
+      const storedNonce = fastify.redis ? await fastify.redis.get(nonceKey) : null;
 
       if (!storedNonce) {
         return reply.status(400).send({
@@ -117,9 +119,14 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // 删除已使用的nonce
-      await fastify.redis.del(nonceKey);
+      if (fastify.redis) {
+        await fastify.redis.del(nonceKey);
+      }
 
       // 查找或创建用户
+      if (!fastify.db) {
+        throw new Error('Database connection not available');
+      }
       let user = await fastify.db.getUserByWalletAddress(walletAddress);
       if (!user) {
         // 创建新用户
@@ -165,11 +172,11 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
           socialLinks: {}
         };
 
-        user = await fastify.db.createUser(walletAddress, defaultPreferences, defaultProfile);
+        user = await fastify.db!.createUser(walletAddress, defaultPreferences, defaultProfile);
         logger.info(`Created new user: ${walletAddress}`);
       } else {
         // 更新最后登录时间
-        await fastify.db.updateUser(user.id, { last_login_at: new Date() });
+        await fastify.db!.updateUser(user.id, { last_login_at: new Date() });
         logger.info(`User login: ${walletAddress}`);
       }
 

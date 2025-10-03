@@ -116,6 +116,8 @@ export interface CollectedMetadata {
   wordCount?: number;
   readingTime?: number;
   sentiment?: 'positive' | 'negative' | 'neutral';
+  feedTitle?: string;
+  description?: string;
 }
 
 // 媒体文件

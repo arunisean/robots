@@ -9,7 +9,9 @@ export {
 
 export type {
   DataSource,
+  DataTarget,
   CollectedData,
+  CollectionSummary,
   WorkAgentConfig,
   WorkAgentInput,
   WorkAgentOutput
@@ -27,8 +29,11 @@ export type {
   ProcessAgentOutput
 } from './types/process-agent';
 
+export {
+  PublishPlatform
+} from './types/publish-agent';
+
 export type {
-  PublishPlatform,
   PublishTarget,
   PublishContent,
   PublishResult,
@@ -37,14 +42,22 @@ export type {
   PublishAgentOutput
 } from './types/publish-agent';
 
+export {
+  ValidationType
+} from './types/validate-agent';
+
 export type {
-  ValidationType,
   ValidationResult,
   ValidationScore,
+  ValidationSummary,
   ValidateAgentConfig,
   ValidateAgentInput,
   ValidateAgentOutput
 } from './types/validate-agent';
+
+export {
+  WorkflowSchema
+} from './types/workflow';
 
 export type {
   Workflow,

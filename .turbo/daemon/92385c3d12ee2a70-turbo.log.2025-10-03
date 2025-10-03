@@ -1,0 +1,269 @@
+2025-10-03T06:59:49.253650Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/shared/.turbo"), AnchoredSystemPathBuf(".turbo/cookies/1.cookie"), AnchoredSystemPathBuf("packages/chrome-extension/.turbo"), AnchoredSystemPathBuf(".turbo/cookies/3.cookie"), AnchoredSystemPathBuf(".turbo/cookies/2.cookie"), AnchoredSystemPathBuf(".turbo/cookies/5.cookie"), AnchoredSystemPathBuf("packages/backend/.turbo"), AnchoredSystemPathBuf(".turbo/cookies/4.cookie"), AnchoredSystemPathBuf("packages/frontend/.turbo"), AnchoredSystemPathBuf(".turbo/cookies/.turbo-cookie")}
+2025-10-03T06:59:49.253676Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }, WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }, WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }, WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }, WorkspacePackage { name: Other("@multi-agent-platform/chrome-extension"), path: AnchoredSystemPathBuf("packages/chrome-extension") }}))
+2025-10-03T07:00:09.553701Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/chrome-extension/package.json")}
+2025-10-03T07:00:09.553715Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/chrome-extension"), path: AnchoredSystemPathBuf("packages/chrome-extension") }}))
+2025-10-03T07:00:14.553674Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/6.cookie")}
+2025-10-03T07:00:14.553683Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T07:00:14.654088Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/8.cookie"), AnchoredSystemPathBuf(".turbo/cookies/10.cookie"), AnchoredSystemPathBuf(".turbo/cookies/9.cookie"), AnchoredSystemPathBuf(".turbo/cookies/7.cookie")}
+2025-10-03T07:00:14.654097Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T07:00:14.753668Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/11.cookie")}
+2025-10-03T07:00:14.753676Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T07:00:15.654227Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/12.cookie")}
+2025-10-03T07:00:15.654253Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T07:00:27.853784Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages"), AnchoredSystemPathBuf("packages/frontend/pages/index.tsx")}
+2025-10-03T07:00:27.853794Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:37.653146Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/index.tsx")}
+2025-10-03T07:00:37.653158Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:42.152912Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/_app.tsx")}
+2025-10-03T07:00:42.152920Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:42.453216Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/_app.tsx")}
+2025-10-03T07:00:42.453224Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:46.752258Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/styles"), AnchoredSystemPathBuf("packages/frontend/styles/globals.css")}
+2025-10-03T07:00:46.752287Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:47.953159Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/styles/globals.css")}
+2025-10-03T07:00:47.953170Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:52.653221Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/tailwind.config.js")}
+2025-10-03T07:00:52.653231Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:53.252034Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/tailwind.config.js")}
+2025-10-03T07:00:53.252048Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:57.652614Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/postcss.config.js")}
+2025-10-03T07:00:57.652639Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:00:57.952612Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/postcss.config.js")}
+2025-10-03T07:00:57.952624Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:01:02.452310Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/next.config.js")}
+2025-10-03T07:01:02.452337Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:01:03.357313Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/next.config.js")}
+2025-10-03T07:01:03.357342Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:01:20.752168Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/config/index.ts")}
+2025-10-03T07:01:20.752180Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T07:01:30.252310Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/index.ts")}
+2025-10-03T07:01:30.252318Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T07:01:36.151575Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/index.ts")}
+2025-10-03T07:01:36.151582Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T07:01:40.851998Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/13.cookie")}
+2025-10-03T07:01:40.852008Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T07:01:40.952161Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/16.cookie"), AnchoredSystemPathBuf("packages/shared/dist"), AnchoredSystemPathBuf(".turbo/cookies/18.cookie"), AnchoredSystemPathBuf(".turbo/cookies/17.cookie"), AnchoredSystemPathBuf("packages/chrome-extension/.turbo"), AnchoredSystemPathBuf(".turbo/cookies/14.cookie"), AnchoredSystemPathBuf("packages/shared/.turbo"), AnchoredSystemPathBuf(".turbo/cookies/15.cookie"), AnchoredSystemPathBuf(".turbo/cookies/19.cookie")}
+2025-10-03T07:01:40.952170Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }, WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }, WorkspacePackage { name: Other("@multi-agent-platform/chrome-extension"), path: AnchoredSystemPathBuf("packages/chrome-extension") }}))
+2025-10-03T07:01:40.961055Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-10-03T07:01:40.961068Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-10-03T07:01:41.452912Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/tsconfig.json"), AnchoredSystemPathBuf("packages/frontend/next-env.d.ts")}
+2025-10-03T07:01:41.452924Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T07:01:42.852696Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("tsconfig.tsbuildinfo")}
+2025-10-03T07:01:42.852704Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T08:31:28.460715Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/index-simple.ts")}
+2025-10-03T08:31:28.460724Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T08:31:42.961014Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/index-simple.ts")}
+2025-10-03T08:31:42.961027Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T08:31:50.460029Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/package.json")}
+2025-10-03T08:31:50.460042Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T08:46:44.661651Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/package.json")}
+2025-10-03T08:46:44.661664Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T08:58:36.861349Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("README.md")}
+2025-10-03T08:58:36.861356Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T08:58:53.061997Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("README.md")}
+2025-10-03T08:58:53.062008Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T08:59:04.761830Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("README.md")}
+2025-10-03T08:59:04.761839Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T08:59:24.161666Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/DEVELOPMENT_PLAN.md")}
+2025-10-03T08:59:24.161682Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:00:15.961336Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/DEVELOPMENT_PLAN.md")}
+2025-10-03T09:00:15.961343Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:00:17.563319Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/DEVELOPMENT_PLAN.md")}
+2025-10-03T09:00:17.563331Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:01:30.762273Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/DEVELOPMENT_PLAN.md")}
+2025-10-03T09:01:30.762284Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:01:41.862295Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("README.md")}
+2025-10-03T09:01:41.862303Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:01:54.160568Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("README.md")}
+2025-10-03T09:01:54.160576Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:02:00.761771Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/QUICK_START.md")}
+2025-10-03T09:02:00.761782Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:02:23.561505Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/QUICK_START.md")}
+2025-10-03T09:02:23.561517Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:02:40.362188Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("README.md")}
+2025-10-03T09:02:40.362199Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:26:29.700580Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/20.cookie")}
+2025-10-03T09:26:29.700588Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:26:29.801005Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".turbo/cookies/22.cookie"), AnchoredSystemPathBuf(".turbo/cookies/23.cookie"), AnchoredSystemPathBuf(".turbo/cookies/24.cookie"), AnchoredSystemPathBuf(".turbo/cookies/21.cookie")}
+2025-10-03T09:26:29.801012Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:26:31.800295Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("tsconfig.tsbuildinfo")}
+2025-10-03T09:26:31.800302Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:26:56.600702Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/shared/src/index.ts")}
+2025-10-03T09:26:56.600727Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }}))
+2025-10-03T09:27:03.400870Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/shared/src/index.ts")}
+2025-10-03T09:27:03.400882Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }}))
+2025-10-03T09:27:09.804806Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/shared/src/index.ts")}
+2025-10-03T09:27:09.804818Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }}))
+2025-10-03T09:27:24.900044Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/shared/src/index.ts")}
+2025-10-03T09:27:24.900055Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }}))
+2025-10-03T09:28:03.801045Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WorkAgent.ts")}
+2025-10-03T09:28:03.801053Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:28:10.601067Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WorkAgent.ts")}
+2025-10-03T09:28:10.601074Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:28:21.800412Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WorkAgent.ts")}
+2025-10-03T09:28:21.800420Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:28:29.000927Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WorkAgent.ts")}
+2025-10-03T09:28:29.000935Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:28:35.500583Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WorkAgent.ts")}
+2025-10-03T09:28:35.500592Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:28:51.501040Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WorkAgent.ts")}
+2025-10-03T09:28:51.501048Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:29:04.200505Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/utils/error.ts")}
+2025-10-03T09:29:04.200518Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:29:11.700097Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/utils/error.ts")}
+2025-10-03T09:29:11.700111Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:29:31.401153Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/agents.ts")}
+2025-10-03T09:29:31.401168Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:29:46.400466Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/agents.ts")}
+2025-10-03T09:29:46.400473Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:29:55.400395Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/agents.ts")}
+2025-10-03T09:29:55.400420Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:30:04.601575Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/agents.ts")}
+2025-10-03T09:30:04.601583Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:30:10.801000Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/agents.ts")}
+2025-10-03T09:30:10.801041Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:30:20.700434Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/agents.ts")}
+2025-10-03T09:30:20.700443Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:30:34.800862Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/auth.ts")}
+2025-10-03T09:30:34.800869Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:30:48.101472Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/auth.ts")}
+2025-10-03T09:30:48.101485Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:30:54.600594Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/auth.ts")}
+2025-10-03T09:30:54.600639Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:31:08.902263Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/auth.ts")}
+2025-10-03T09:31:08.902272Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:31:14.901591Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/utils/database.ts")}
+2025-10-03T09:31:14.901600Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:31:18.801357Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/utils/database.ts")}
+2025-10-03T09:31:18.801371Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:31:25.501752Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/auth.ts")}
+2025-10-03T09:31:25.501765Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:31:31.202040Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/routes/auth.ts")}
+2025-10-03T09:31:31.202053Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:31:55.401619Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:31:55.401628Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:32:20.500304Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:32:20.500337Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:32:49.420137Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:32:49.420147Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:32:54.801667Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:32:54.801675Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:00.800170Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/RSSCollectorAgent.ts")}
+2025-10-03T09:33:00.800182Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:06.803289Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/RSSCollectorAgent.ts")}
+2025-10-03T09:33:06.803297Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:14.402226Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/shared/src/types/work-agent.ts")}
+2025-10-03T09:33:14.402240Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/shared"), path: AnchoredSystemPathBuf("packages/shared") }}))
+2025-10-03T09:33:20.700085Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/RSSCollectorAgent.ts")}
+2025-10-03T09:33:20.700095Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:30.500622Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/RSSCollectorAgent.ts")}
+2025-10-03T09:33:30.500656Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:30.602425Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/RSSCollectorAgent.ts")}
+2025-10-03T09:33:30.602433Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:30.602458Z  WARN turborepo_lib::package_changes_watcher: hashes are the same, no need to rerun
+2025-10-03T09:33:40.503165Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/RSSCollectorAgent.ts")}
+2025-10-03T09:33:40.503176Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:46.302707Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:33:46.302723Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:52.302236Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:33:52.302243Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:33:57.603482Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/backend/src/agents/work/WebScraperAgent.ts")}
+2025-10-03T09:33:57.603495Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/backend"), path: AnchoredSystemPathBuf("packages/backend") }}))
+2025-10-03T09:34:16.501646Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("tsconfig.tsbuildinfo")}
+2025-10-03T09:34:16.501655Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:42:28.167996Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".gitignore")}
+2025-10-03T09:42:28.168005Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:43:02.866418Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".gitignore")}
+2025-10-03T09:43:02.866425Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:43:31.367081Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".gitignore")}
+2025-10-03T09:43:31.367091Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:43:33.167230Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".gitignore")}
+2025-10-03T09:43:33.167237Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:45:16.967637Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/DEVELOPMENT_PLAN.md")}
+2025-10-03T09:45:16.967646Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:45:53.367036Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication"), AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication/requirements.md")}
+2025-10-03T09:45:53.367050Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:46:33.667713Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication/requirements.md")}
+2025-10-03T09:46:33.667726Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:46:52.666976Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication/design.md")}
+2025-10-03T09:46:52.666989Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:47:47.866619Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication/design.md")}
+2025-10-03T09:47:47.866630Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:49:34.667560Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication/tasks.md")}
+2025-10-03T09:49:34.667571Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:50:46.667336Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf(".kiro/specs/web3-wallet-authentication/tasks.md")}
+2025-10-03T09:50:46.667349Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:57:16.266235Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/package.json")}
+2025-10-03T09:57:16.266244Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:57:16.466871Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package-lock.json")}
+2025-10-03T09:57:16.466881Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:57:23.866766Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/package.json")}
+2025-10-03T09:57:23.866774Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:57:24.066627Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("package-lock.json")}
+2025-10-03T09:57:24.066634Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T09:57:30.466662Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/config/web3.ts"), AnchoredSystemPathBuf("packages/frontend/src/config"), AnchoredSystemPathBuf("packages/frontend/src")}
+2025-10-03T09:57:30.466670Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:57:53.666373Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/config/web3.ts")}
+2025-10-03T09:57:53.666389Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:57:58.268352Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/types"), AnchoredSystemPathBuf("packages/frontend/src/types/web3.ts")}
+2025-10-03T09:57:58.268363Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:58:21.768076Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/types/web3.ts")}
+2025-10-03T09:58:21.768084Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:58:31.966919Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/utils"), AnchoredSystemPathBuf("packages/frontend/src/utils/walletDetection.ts")}
+2025-10-03T09:58:31.966933Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:58:48.566920Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/utils/walletDetection.ts")}
+2025-10-03T09:58:48.566933Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T09:58:56.466146Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/services"), AnchoredSystemPathBuf("packages/frontend/src/services/authApi.ts")}
+2025-10-03T09:58:56.466159Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:28:29.203986Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/utils/walletConnection.ts")}
+2025-10-03T10:28:29.203996Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:29:13.004248Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/utils/walletConnection.ts")}
+2025-10-03T10:29:13.004269Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:29:19.504426Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/services/authService.ts")}
+2025-10-03T10:29:19.504437Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:29:55.604182Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/services/authService.ts")}
+2025-10-03T10:29:55.604196Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:30:01.504029Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/hooks"), AnchoredSystemPathBuf("packages/frontend/src/hooks/useWalletConnect.ts")}
+2025-10-03T10:30:01.504039Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:30:42.603364Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/hooks/useWalletConnect.ts")}
+2025-10-03T10:30:42.603371Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:30:47.609305Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/hooks/useAuth.ts")}
+2025-10-03T10:30:47.609316Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:31:21.304195Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/hooks/useAuth.ts")}
+2025-10-03T10:31:21.304208Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:31:26.103746Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletConnectButton.tsx"), AnchoredSystemPathBuf("packages/frontend/src/components")}
+2025-10-03T10:31:26.103757Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:32:01.105627Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletConnectButton.tsx")}
+2025-10-03T10:32:01.105648Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:32:06.703908Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletProvider.tsx")}
+2025-10-03T10:32:06.703920Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:32:44.504677Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletProvider.tsx")}
+2025-10-03T10:32:44.504688Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:33:29.403901Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/index.tsx")}
+2025-10-03T10:33:29.403919Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:33:37.804590Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/_app.tsx")}
+2025-10-03T10:33:37.804600Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:34:10.804208Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletConnectButton.tsx")}
+2025-10-03T10:34:10.804223Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:34:17.304930Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletConnectButton.tsx")}
+2025-10-03T10:34:17.304938Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:34:28.804287Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/components/WalletConnectButton.tsx")}
+2025-10-03T10:34:28.804295Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:35:08.017537Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/types/web3.ts")}
+2025-10-03T10:35:08.017548Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:35:21.804416Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/config/web3.ts")}
+2025-10-03T10:35:21.804424Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:35:38.903656Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/hooks/useWalletConnect.ts")}
+2025-10-03T10:35:38.903672Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:36:00.203953Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/types/web3.ts")}
+2025-10-03T10:36:00.203961Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:36:14.804718Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/utils/walletDetection.ts")}
+2025-10-03T10:36:14.804727Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T10:36:28.803374Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/src/utils/walletDetection.ts")}
+2025-10-03T10:36:28.803384Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T12:04:34.412576Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("docs/DEVELOPMENT_PLAN.md")}
+2025-10-03T12:04:34.412586Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Root, path: AnchoredSystemPathBuf("") }}))
+2025-10-03T12:07:42.624922Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/test-wallet.tsx")}
+2025-10-03T12:07:42.624929Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))
+2025-10-03T12:08:09.526135Z  WARN turborepo_lib::package_changes_watcher: changed_files: {AnchoredSystemPathBuf("packages/frontend/pages/test-wallet.tsx")}
+2025-10-03T12:08:09.526147Z  WARN turborepo_lib::package_changes_watcher: changed_packages: Ok(Some({WorkspacePackage { name: Other("@multi-agent-platform/frontend"), path: AnchoredSystemPathBuf("packages/frontend") }}))

@@ -41,7 +41,8 @@ export class RSSCollectorAgent extends WorkAgent {
           } catch (error) {
             // In development/test environment, connection test may fail
             // Log warning but don't fail initialization
-            this.logger.warn(`Could not test connection to ${source.url}: ${error.message}`);
+            const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+            this.logger.warn(`Could not test connection to ${source.url}: ${errorMessage}`);
           }
         }
       }
@@ -70,8 +71,7 @@ export class RSSCollectorAgent extends WorkAgent {
           'User-Agent': 'Multi-Agent-Platform RSS Collector 1.0',
           'Accept': 'application/rss+xml, application/xml, text/xml',
           ...target.config?.headers
-        },
-        timeout: target.config?.timeout || 30000
+        }
       });
 
       if (!response.ok) {
@@ -156,8 +156,7 @@ export class RSSCollectorAgent extends WorkAgent {
         method: 'HEAD',
         headers: {
           'User-Agent': 'Multi-Agent-Platform RSS Collector 1.0'
-        },
-        timeout: 10000
+        }
       });
 
       if (!response.ok) {
@@ -171,7 +170,8 @@ export class RSSCollectorAgent extends WorkAgent {
       }
 
     } catch (error) {
-      throw new Error(`Cannot connect to RSS feed ${source.url}: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Cannot connect to RSS feed ${source.url}: ${errorMessage}`);
     }
   }
 
@@ -205,7 +205,8 @@ export class RSSCollectorAgent extends WorkAgent {
       return items;
     } catch (error) {
       this.logger.error('Error parsing RSS feed:', error);
-      throw new Error(`Failed to parse RSS feed: ${error.message}`);
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      throw new Error(`Failed to parse RSS feed: ${errorMessage}`);
     }
   }
 

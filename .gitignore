@@ -3,7 +3,7 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-
+*.cookie
 # Production builds
 dist/
 build/
@@ -109,3 +109,4 @@ packages/chrome-extension/dist/
 
 # Docker
 .dockerignore
+.turbo/cookies/18.cookie
