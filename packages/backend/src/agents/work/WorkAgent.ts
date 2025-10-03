@@ -184,6 +184,35 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
         return true;
     }
 
+    // BaseAgent abstract methods implementation
+
+    /**
+     * Agent-specific initialization logic
+     */
+    protected async doInitialize(config: AgentConfig): Promise<void> {
+        // Load data sources from configuration
+        const workConfig = config as WorkAgentConfig;
+        if (workConfig.dataSources) {
+            this.dataSources = workConfig.dataSources;
+        }
+
+        // Load collection rules from configuration
+        if (workConfig.collectionRules) {
+            this.collectionRules = workConfig.collectionRules;
+        }
+
+        this.logger.info(`Work agent initialized with ${this.dataSources.length} data sources and ${this.collectionRules.length} rules`);
+    }
+
+    /**
+     * Agent-specific cleanup logic
+     */
+    protected async doCleanup(): Promise<void> {
+        // Clear any cached data
+        this.collectedData = [];
+        this.logger.info('Work agent cleanup completed');
+    }
+
     // Abstract methods for subclasses to implement
 
     /**
@@ -194,22 +223,12 @@ export abstract class WorkAgent extends BaseAgent implements IWorkAgent {
     /**
      * Clean and process raw collected data
      */
-    protected abstract cleanData(data: any): Promise<CollectedData[]>;
+    protected abstract cleanData(data: any, rules?: any[]): Promise<CollectedData>;
 
     /**
-     * Start collection process (agent-specific implementation)
+     * Get collection type
      */
-    protected abstract doStartCollection(): Promise<void>;
-
-    /**
-     * Stop collection process (agent-specific implementation)
-     */
-    protected abstract doStopCollection(): Promise<void>;
-
-    /**
-     * Get collected data (agent-specific implementation)
-     */
-    protected abstract doGetCollectedData(filter?: any): Promise<CollectedData[]>;
+    protected abstract getCollectionType(): string;
 
     /**
      * Test data source connection

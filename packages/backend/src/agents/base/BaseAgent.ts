@@ -6,8 +6,7 @@ import {
   AgentStatus,
   AgentMetrics,
   ExecutionStatus,
-  ResourceAllocation,
-  ValidationResult
+  ResourceAllocation
 } from '@multi-agent-platform/shared';
 import {
   IAgent,
@@ -18,6 +17,13 @@ import {
 } from './IAgent';
 import { Logger } from '../../utils/logger';
 import { EventEmitter } from 'events';
+
+// Simple validation result interface
+interface ValidationResult {
+  success: boolean;
+  isValid: boolean;
+  errors?: string[];
+}
 
 /**
  * Abstract base class implementing common agent functionality
@@ -199,6 +205,7 @@ export abstract class BaseAgent extends EventEmitter implements IAgent {
 
     return {
       success: errors.length === 0,
+      isValid: errors.length === 0,
       errors: errors.length > 0 ? errors : undefined
     };
   }

@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import { AgentCategory, AgentConfig, ResourceAllocation } from '@multi-agent-platform/shared';
 import { IAgent, IAgentFactory } from '../base/IAgent';
 import { WorkAgent } from '../work/WorkAgent';
@@ -11,12 +12,13 @@ import { Logger } from '../../utils/logger';
  * Factory for creating agent instances
  * Implements the Factory pattern for agent creation
  */
-export class AgentFactory implements IAgentFactory {
+export class AgentFactory extends EventEmitter implements IAgentFactory {
   private logger: Logger;
   private agentTypes: Map<string, AgentConstructor> = new Map();
   private runtimeManager: AgentRuntimeManager;
 
   constructor(runtimeManager?: AgentRuntimeManager) {
+    super();
     this.logger = new Logger('AgentFactory');
     this.runtimeManager = runtimeManager || new AgentRuntimeManager();
     this.registerDefaultAgentTypes();
@@ -253,6 +255,7 @@ export class AgentFactory implements IAgentFactory {
   private registerDefaultAgentTypes(): void {
     // Work Agents
     this.registerAgentType('work.web_scraper', WebScraperAgent);
+    this.registerAgentType('work.rss_collector', RSSCollectorAgent);
     this.registerAgentType('work.api_collector', ApiCollectorAgent);
     this.registerAgentType('work.social_media', SocialMediaAgent);
 
@@ -309,62 +312,23 @@ interface ValidationResult {
   errors?: string[];
 }
 
-// Placeholder agent classes - these would be implemented in separate files
-class WebScraperAgent extends WorkAgent {
-  protected async doInitialize(config: AgentConfig): Promise<void> {
-    // Implementation
-  }
-  protected async collectFromTarget(target: any): Promise<any> {
-    // Implementation
-    return {};
-  }
-  protected async cleanData(data: any): Promise<any[]> {
-    // Implementation
-    return [];
-  }
-  protected async doStartCollection(): Promise<void> {
-    // Implementation
-  }
-  protected async doStopCollection(): Promise<void> {
-    // Implementation
-  }
-  protected async doGetCollectedData(filter?: any): Promise<any[]> {
-    // Implementation
-    return [];
-  }
-  protected async testDataSourceConnection(source: any): Promise<void> {
-    // Implementation
-  }
-  protected async doCleanup(): Promise<void> {
-    // Implementation
-  }
-  protected async doHealthCheck(): Promise<boolean> {
-    return true;
-  }
-}
+// Import actual agent implementations
+import { WebScraperAgent } from '../work/WebScraperAgent';
+import { RSSCollectorAgent } from '../work/RSSCollectorAgent';
 
+// Placeholder for future implementations
 class ApiCollectorAgent extends WorkAgent {
-  protected async doInitialize(config: AgentConfig): Promise<void> {}
   protected async collectFromTarget(target: any): Promise<any> { return {}; }
-  protected async cleanData(data: any): Promise<any[]> { return []; }
-  protected async doStartCollection(): Promise<void> {}
-  protected async doStopCollection(): Promise<void> {}
-  protected async doGetCollectedData(filter?: any): Promise<any[]> { return []; }
+  protected async cleanData(data: any): Promise<any> { return data; }
+  protected getCollectionType(): string { return 'api_collector'; }
   protected async testDataSourceConnection(source: any): Promise<void> {}
-  protected async doCleanup(): Promise<void> {}
-  protected async doHealthCheck(): Promise<boolean> { return true; }
 }
 
 class SocialMediaAgent extends WorkAgent {
-  protected async doInitialize(config: AgentConfig): Promise<void> {}
   protected async collectFromTarget(target: any): Promise<any> { return {}; }
-  protected async cleanData(data: any): Promise<any[]> { return []; }
-  protected async doStartCollection(): Promise<void> {}
-  protected async doStopCollection(): Promise<void> {}
-  protected async doGetCollectedData(filter?: any): Promise<any[]> { return []; }
+  protected async cleanData(data: any): Promise<any> { return data; }
+  protected getCollectionType(): string { return 'social_media'; }
   protected async testDataSourceConnection(source: any): Promise<void> {}
-  protected async doCleanup(): Promise<void> {}
-  protected async doHealthCheck(): Promise<boolean> { return true; }
 }
 
 class TextProcessorAgent extends ProcessAgent {

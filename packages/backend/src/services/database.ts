@@ -1,9 +1,11 @@
 import { Pool, PoolClient } from 'pg';
 import { config } from '../config';
 import { logger } from '../utils/logger';
+import { MigrationManager } from '../database/MigrationManager';
 
 export class DatabaseService {
   private pool: Pool;
+  private migrationManager: MigrationManager;
 
   constructor() {
     this.pool = new Pool({
@@ -12,6 +14,8 @@ export class DatabaseService {
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 2000,
     });
+
+    this.migrationManager = new MigrationManager(this.pool);
 
     // 监听连接事件
     this.pool.on('connect', () => {
@@ -28,11 +32,19 @@ export class DatabaseService {
       const client = await this.pool.connect();
       await client.query('SELECT NOW()');
       client.release();
+      
+      // 运行数据库迁移
+      await this.migrationManager.runMigrations();
+      
       logger.info('Database connected successfully');
     } catch (error) {
       logger.error('Failed to connect to database:', error);
       throw error;
     }
+  }
+
+  getMigrationManager(): MigrationManager {
+    return this.migrationManager;
   }
 
   async query(text: string, params?: any[]): Promise<any> {
