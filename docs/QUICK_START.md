@@ -11,14 +11,28 @@
 ## 📋 前置要求
 
 - **Node.js 18+**
-- **PostgreSQL 15+** (推荐使用Homebrew)
-- **Redis** (推荐使用Homebrew)
+- **Docker Desktop** (推荐) 或 PostgreSQL 15+ + Redis
 - **MetaMask浏览器插件**
 
 ## 🛠️ 环境设置
 
-### 1. 安装数据库服务
+### 1. 启动数据库服务
 
+**方式1: 使用Docker (推荐)**
+```bash
+# 首次使用建议配置Docker镜像加速器
+./scripts/setup-docker-mirrors.sh
+
+# 启动PostgreSQL和Redis
+./scripts/start-dev-services.sh
+
+# 或使用Docker Compose
+docker-compose up postgres redis -d
+```
+
+> 💡 如果遇到镜像拉取失败，请参考 [Docker配置指南](./DOCKER_SETUP.md)
+
+**方式2: 本地安装**
 ```bash
 # 使用Homebrew安装
 brew install postgresql@15 redis
@@ -82,8 +96,22 @@ cd packages/frontend && npm run dev
 ## 🌐 访问应用
 
 - **前端应用**: http://localhost:3000
+- **钱包测试页面**: http://localhost:3000/test-wallet
 - **后端API**: http://localhost:3001
 - **健康检查**: http://localhost:3001/health
+
+## 🛑 停止服务
+
+**停止Docker服务:**
+```bash
+./scripts/stop-dev-services.sh
+```
+
+**停止本地服务:**
+```bash
+brew services stop postgresql@15
+brew services stop redis
+```
 
 ## 🔧 故障排除
 
