@@ -15,6 +15,7 @@ RED='\033[0;31m'
 NC='\033[0m' # No Color
 
 API_URL="http://localhost:3001"
+PUBLIC_API_URL="http://localhost:3001/api/public"
 
 # Function to test endpoint
 test_endpoint() {
@@ -105,7 +106,7 @@ WORKFLOW_DATA='{
   }
 }'
 
-test_endpoint "POST" "/api/workflows" "$WORKFLOW_DATA" "Create workflow"
+test_endpoint "POST" "${PUBLIC_API_URL}/workflows" "$WORKFLOW_DATA" "Create workflow"
 
 # Extract workflow ID from response (if jq is available)
 if command -v jq &> /dev/null; then
@@ -116,10 +117,10 @@ if command -v jq &> /dev/null; then
     echo ""
     
     # Test get workflow
-    test_endpoint "GET" "/api/workflows/$WORKFLOW_ID" "" "Get workflow by ID"
+    test_endpoint "GET" "${PUBLIC_API_URL}/workflows/$WORKFLOW_ID" "" "Get workflow by ID"
     
     # Test execute workflow
-    test_endpoint "POST" "/api/workflows/$WORKFLOW_ID/execute" "" "Execute workflow"
+    test_endpoint "POST" "${PUBLIC_API_URL}/workflows/$WORKFLOW_ID/execute" "" "Execute workflow"
     
     # Extract execution ID
     EXECUTION_ID=$(echo "$body" | jq -r '.id' 2>/dev/null)
@@ -142,7 +143,7 @@ if command -v jq &> /dev/null; then
 fi
 
 # Test list workflows
-test_endpoint "GET" "/api/workflows" "" "List all workflows"
+test_endpoint "GET" "${PUBLIC_API_URL}/workflows" "" "List all workflows"
 
 # Test list executions
 test_endpoint "GET" "/api/executions" "" "List all executions"

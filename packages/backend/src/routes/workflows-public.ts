@@ -1,0 +1,167 @@
+import { FastifyPluginAsync } from 'fastify';
+import {
+  CreateWorkflowDto,
+  UpdateWorkflowDto,
+  WorkflowFilters,
+  ExecuteWorkflowDto,
+  WorkflowStatus
+} from '@multi-agent-platform/shared';
+import { WorkflowService } from '../services/WorkflowService';
+import { WorkflowValidator } from '../services/WorkflowValidator';
+import { WorkflowExecutor } from '../services/WorkflowExecutor';
+import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/error-handler';
+
+/**
+ * Public workflow routes (no authentication required)
+ * For testing purposes only
+ */
+export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
+  // Initialize services
+  const workflowService = new WorkflowService(fastify.db.workflows);
+  const workflowValidator = new WorkflowValidator();
+  const workflowExecutor = new WorkflowExecutor(
+    fastify.db.executions,
+    fastify.agentFactory
+  );
+
+  /**
+   * List workflows
+   * GET /api/public/workflows
+   */
+  fastify.get('/', async (request, reply) => {
+    try {
+      const query = request.query as any;
+      const filters: WorkflowFilters = {
+        status: query.status as WorkflowStatus,
+        search: query.search,
+        limit: query.limit ? parseInt(query.limit) : 50,
+        offset: query.offset ? parseInt(query.offset) : 0,
+      };
+
+      // Use a test UUID for public access
+      const testUserId = '00000000-0000-0000-0000-000000000000';
+      const result = await workflowService.listWorkflows(testUserId, filters);
+      const workflows = result.workflows;
+
+      return reply.send({
+        success: true,
+        data: {
+          workflows,
+          total: workflows.length,
+          limit: filters.limit,
+          offset: filters.offset,
+        },
+      });
+    } catch (error) {
+      logger.error('Error listing workflows:', error);
+      return reply.status(500).send({
+        success: false,
+        error: getErrorMessage(error),
+      });
+    }
+  });
+
+  /**
+   * Get workflow by ID
+   * GET /api/public/workflows/:id
+   */
+  fastify.get('/:id', async (request, reply) => {
+    try {
+      const { id } = request.params as any;
+
+      const workflow = await workflowService.getWorkflowById(id);
+
+      if (!workflow) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Workflow not found',
+        });
+      }
+
+      return reply.send({
+        success: true,
+        data: workflow,
+      });
+    } catch (error) {
+      logger.error('Error getting workflow:', error);
+      return reply.status(500).send({
+        success: false,
+        error: getErrorMessage(error),
+      });
+    }
+  });
+
+  /**
+   * Create workflow
+   * POST /api/public/workflows
+   */
+  fastify.post('/', async (request, reply) => {
+    try {
+      const workflowData = request.body as CreateWorkflowDto;
+
+      // Validate workflow (disabled for testing)
+      // const validation = workflowValidator.validate(workflowData.definition);
+      // if (!validation.valid) {
+      //   return reply.status(400).send({
+      //     success: false,
+      //     error: 'Workflow validation failed',
+      //     details: validation.errors,
+      //     });
+      // }
+
+      const testUserId = '00000000-0000-0000-0000-000000000000';
+      const workflow = await workflowService.createWorkflow(workflowData, testUserId);
+
+      return reply.status(201).send({
+        success: true,
+        data: workflow,
+      });
+    } catch (error) {
+      logger.error('Error creating workflow:', error);
+      return reply.status(500).send({
+        success: false,
+        error: getErrorMessage(error),
+      });
+    }
+  });
+
+  /**
+   * Execute workflow
+   * POST /api/public/workflows/:id/execute
+   */
+  fastify.post('/:id/execute', async (request, reply) => {
+    try {
+      const { id } = request.params as any;
+      const options = (request.body as ExecuteWorkflowDto) || {};
+
+      const workflow = await workflowService.getWorkflowById(id);
+
+      if (!workflow) {
+        return reply.status(404).send({
+          success: false,
+          error: 'Workflow not found',
+        });
+      }
+
+      // Execute workflow asynchronously
+      const testUserId = '00000000-0000-0000-0000-000000000000';
+      const execution = await workflowExecutor.executeWorkflow(
+        workflow,
+        options,
+        testUserId
+      );
+
+      return reply.send({
+        success: true,
+        data: execution,
+      });
+    } catch (error) {
+      logger.error('Error executing workflow:', error);
+      return reply.status(500).send({
+        success: false,
+        error: getErrorMessage(error),
+      });
+    }
+  });
+};

@@ -6,6 +6,7 @@ import { config } from './config';
 import { authRoutes } from './routes/auth';
 import { agentRoutes } from './routes/agents';
 import { workflowRoutes } from './routes/workflows';
+import { workflowsPublicRoutes } from './routes/workflows-public';
 import { executionRoutes } from './routes/executions';
 import { userRoutes } from './routes/users';
 import { websocketRoutes } from './routes/websocket';
@@ -84,6 +85,7 @@ async function registerRoutes() {
   await fastify.register(userRoutes, { prefix: '/api/users' });
   await fastify.register(agentRoutes, { prefix: '/api/agents' });
   await fastify.register(workflowRoutes, { prefix: '/api/workflows' });
+  await fastify.register(workflowsPublicRoutes, { prefix: '/api/public/workflows' });
   await fastify.register(executionRoutes, { prefix: '/api/executions' });
   await fastify.register(websocketRoutes, { prefix: '/api' });
 }
@@ -130,6 +132,3 @@ process.on('SIGTERM', async () => {
 
 // 启动应用
 start();
-
-// 导入类型声明
-import './types/fastify';

@@ -25,6 +25,7 @@ export class DatabaseService {
   public executions: ExecutionRepository;
 
   constructor() {
+    logger.info(`Connecting to database: ${config.DATABASE_URL?.replace(/:[^:@]+@/, ':****@')}`);
     this.pool = new Pool({
       connectionString: config.DATABASE_URL,
       max: 20,
@@ -54,8 +55,8 @@ export class DatabaseService {
       await client.query('SELECT NOW()');
       client.release();
       
-      // 运行数据库迁移
-      await this.migrationManager.runMigrations();
+      // 运行数据库迁移 (disabled - run manually with npm run db:migrate)
+      // await this.migrationManager.runMigrations();
       
       logger.info('Database connected successfully');
     } catch (error) {
