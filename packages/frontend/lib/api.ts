@@ -115,6 +115,30 @@ export const workflowAPI = {
 };
 
 /**
+ * Public Execution API (for testing)
+ */
+export const publicExecutionAPI = {
+  /**
+   * List all executions
+   */
+  list: async (filters?: {
+    workflowId?: string;
+    status?: string;
+    limit?: number;
+    offset?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (filters?.workflowId) params.append('workflowId', filters.workflowId);
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.limit) params.append('limit', filters.limit.toString());
+    if (filters?.offset) params.append('offset', filters.offset.toString());
+
+    const query = params.toString();
+    return fetchAPI<any>(`/api/public/executions${query ? `?${query}` : ''}`);
+  },
+};
+
+/**
  * Execution API
  */
 export const executionAPI = {

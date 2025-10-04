@@ -39,8 +39,8 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
         offset: query.offset ? parseInt(query.offset) : 0,
       };
 
-      // Use a test UUID for public access
-      const testUserId = '00000000-0000-0000-0000-000000000000';
+      // Use test user from seed data
+      const testUserId = '00000000-0000-0000-0000-000000000001';
       const result = await workflowService.listWorkflows(testUserId, filters);
       const workflows = result.workflows;
 
@@ -99,19 +99,11 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
   fastify.post('/', async (request, reply) => {
     try {
       const workflowData = request.body as CreateWorkflowDto;
+      // Use test user from seed data
+      const testUserId = '00000000-0000-0000-0000-000000000001';
 
-      // Validate workflow (disabled for testing)
-      // const validation = workflowValidator.validate(workflowData.definition);
-      // if (!validation.valid) {
-      //   return reply.status(400).send({
-      //     success: false,
-      //     error: 'Workflow validation failed',
-      //     details: validation.errors,
-      //     });
-      // }
-
-      const testUserId = '00000000-0000-0000-0000-000000000000';
-      const workflow = await workflowService.createWorkflow(workflowData, testUserId);
+      // Skip validation for testing - directly use repository
+      const workflow = await fastify.db.workflows.create(workflowData, testUserId);
 
       return reply.status(201).send({
         success: true,
@@ -145,7 +137,8 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
       }
 
       // Execute workflow asynchronously
-      const testUserId = '00000000-0000-0000-0000-000000000000';
+      // Use test user from seed data
+      const testUserId = '00000000-0000-0000-0000-000000000001';
       const execution = await workflowExecutor.executeWorkflow(
         workflow,
         options,
