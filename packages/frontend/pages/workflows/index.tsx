@@ -32,7 +32,7 @@ export default function WorkflowsPage() {
       }
 
       const response = await workflowAPI.list(filters);
-      setWorkflows(response.workflows || response || []);
+      setWorkflows(response.workflows || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load workflows');
     } finally {

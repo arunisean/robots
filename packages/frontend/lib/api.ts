@@ -26,7 +26,14 @@ async function fetchAPI<T>(
     throw new Error(error.message || `API error: ${response.status}`);
   }
 
-  return response.json();
+  const json = await response.json();
+  
+  // Auto-unwrap { success: true, data: {...} } responses
+  if (json.success && json.data !== undefined) {
+    return json.data;
+  }
+  
+  return json;
 }
 
 /**
