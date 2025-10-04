@@ -1,204 +1,107 @@
-import { z } from 'zod';
-import { AgentCategory } from './agent';
+import { AgentCategory, AgentConfig } from './agent';
 
-// 工作流相关类型
+/**
+ * Workflow status
+ */
+export type WorkflowStatus = 'draft' | 'active' | 'paused' | 'archived';
 
-// 工作流接口
-export interface Workflow {
+/**
+ * Workflow execution status
+ */
+export type WorkflowExecutionStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+/**
+ * Workflow execution trigger type
+ */
+export type WorkflowTriggerType = 'manual' | 'scheduled' | 'webhook' | 'api';
+
+/**
+ * Agent execution status
+ */
+export type AgentExecutionStatus = 'success' | 'failed' | 'skipped';
+
+/**
+ * Workflow agent configuration
+ */
+export interface WorkflowAgent {
   id: string;
-  name: string;
-  description: string;
-  version: string;
-  status: WorkflowStatus;
-  nodes: WorkflowNode[];
-  connections: NodeConnection[];
-  triggers: WorkflowTrigger[];
-  settings: WorkflowSettings;
-  metadata: WorkflowMetadata;
-  createdAt: Date;
-  updatedAt: Date;
-  ownerId: string;
+  agentType: string;
+  agentCategory: AgentCategory;
+  config: AgentConfig;
+  order: number;
+  nextAgentId?: string;
 }
 
-// 工作流状态
-export enum WorkflowStatus {
-  DRAFT = 'draft',
-  ACTIVE = 'active',
-  PAUSED = 'paused',
-  ARCHIVED = 'archived',
-  ERROR = 'error'
+/**
+ * Workflow definition
+ */
+export interface WorkflowDefinition {
+  nodes: WorkflowAgent[];
+  connections: WorkflowConnection[];
 }
 
-// 工作流节点
-export interface WorkflowNode {
-  id: string;
-  type: NodeType;
-  name: string;
-  position: NodePosition;
-  config: NodeConfig;
-  agentId?: string;
-  agentCategory?: AgentCategory;
-  enabled: boolean;
+/**
+ * Workflow connection between agents
+ */
+export interface WorkflowConnection {
+  from: string;
+  to: string;
+  condition?: string; // Optional condition for conditional execution
 }
 
-// 节点类型
-export enum NodeType {
-  AGENT = 'agent',
-  TRIGGER = 'trigger',
-  CONDITION = 'condition',
-  TRANSFORMER = 'transformer',
-  DELAY = 'delay',
-  WEBHOOK = 'webhook',
-  SCHEDULE = 'schedule'
-}
-
-// 节点位置
-export interface NodePosition {
-  x: number;
-  y: number;
-}
-
-// 节点配置
-export interface NodeConfig {
-  // Agent节点配置
-  agentConfig?: Record<string, any>;
-  
-  // 触发器配置
-  triggerConfig?: {
-    type: 'manual' | 'schedule' | 'webhook' | 'event';
-    schedule?: string; // cron expression
-    webhookUrl?: string;
-    eventType?: string;
-  };
-  
-  // 条件配置
-  conditionConfig?: {
-    expression: string;
-    trueNode?: string;
-    falseNode?: string;
-  };
-  
-  // 转换器配置
-  transformerConfig?: {
-    script: string;
-    language: 'javascript' | 'python';
-    inputMapping: Record<string, string>;
-    outputMapping: Record<string, string>;
-  };
-  
-  // 延迟配置
-  delayConfig?: {
-    duration: number; // milliseconds
-    unit: 'seconds' | 'minutes' | 'hours' | 'days';
-  };
-  
-  // 通用配置
-  retryPolicy?: {
-    maxRetries: number;
-    backoffMs: number;
-  };
-  timeout?: number; // seconds
-}
-
-// 节点连接
-export interface NodeConnection {
-  id: string;
-  sourceNodeId: string;
-  targetNodeId: string;
-  sourcePort?: string;
-  targetPort?: string;
-  condition?: string;
-  enabled: boolean;
-}
-
-// 工作流触发器
-export interface WorkflowTrigger {
-  id: string;
-  type: TriggerType;
-  name: string;
-  config: TriggerConfig;
-  enabled: boolean;
-}
-
-// 触发器类型
-export enum TriggerType {
-  MANUAL = 'manual',
-  SCHEDULE = 'schedule',
-  WEBHOOK = 'webhook',
-  EVENT = 'event',
-  FILE_WATCH = 'file_watch',
-  API_CALL = 'api_call'
-}
-
-// 触发器配置
-export interface TriggerConfig {
-  // 调度触发器
-  schedule?: {
-    cron: string;
-    timezone: string;
-    startDate?: Date;
-    endDate?: Date;
-  };
-  
-  // Webhook触发器
-  webhook?: {
-    url: string;
-    method: 'GET' | 'POST' | 'PUT' | 'DELETE';
-    headers?: Record<string, string>;
-    authentication?: {
-      type: 'none' | 'basic' | 'bearer' | 'api_key';
-      credentials?: Record<string, string>;
-    };
-  };
-  
-  // 事件触发器
-  event?: {
-    source: string;
-    eventType: string;
-    filters?: Record<string, any>;
-  };
-  
-  // 文件监控触发器
-  fileWatch?: {
-    path: string;
-    pattern: string;
-    events: ('create' | 'modify' | 'delete')[];
-  };
-}
-
-// 工作流设置
+/**
+ * Workflow settings
+ */
 export interface WorkflowSettings {
   maxConcurrentExecutions: number;
-  executionTimeout: number; // seconds
-  retryPolicy: {
-    enabled: boolean;
-    maxRetries: number;
-    backoffStrategy: 'fixed' | 'exponential' | 'linear';
-    backoffMs: number;
-  };
-  errorHandling: {
-    strategy: 'stop' | 'continue' | 'retry';
-    notifyOnError: boolean;
-    errorWebhook?: string;
-  };
-  logging: {
-    level: 'debug' | 'info' | 'warn' | 'error';
-    retention: number; // days
-    includeData: boolean;
-  };
+  executionTimeout: number; // in seconds
+  retryPolicy: RetryPolicy;
+  errorHandling: ErrorHandlingPolicy;
+  logging: LoggingPolicy;
 }
 
-// 工作流元数据
+/**
+ * Retry policy
+ */
+export interface RetryPolicy {
+  enabled: boolean;
+  maxRetries: number;
+  backoffStrategy: 'linear' | 'exponential';
+  backoffMs: number;
+}
+
+/**
+ * Error handling policy
+ */
+export interface ErrorHandlingPolicy {
+  strategy: 'stop' | 'continue' | 'skip';
+  notifyOnError: boolean;
+}
+
+/**
+ * Logging policy
+ */
+export interface LoggingPolicy {
+  level: 'debug' | 'info' | 'warn' | 'error';
+  retention: number; // days
+  includeData: boolean;
+}
+
+/**
+ * Workflow metadata
+ */
 export interface WorkflowMetadata {
   tags: string[];
   category: string;
-  author: string;
-  documentation?: string;
-  changelog: ChangelogEntry[];
-  stats: WorkflowStats;
+  author?: string;
+  changelog?: ChangelogEntry[];
+  stats?: WorkflowStats;
+  [key: string]: any;
 }
 
-// 变更日志条目
+/**
+ * Changelog entry
+ */
 export interface ChangelogEntry {
   version: string;
   date: Date;
@@ -206,216 +109,257 @@ export interface ChangelogEntry {
   author: string;
 }
 
-// 工作流统计
+/**
+ * Workflow statistics
+ */
 export interface WorkflowStats {
   totalExecutions: number;
   successfulExecutions: number;
   failedExecutions: number;
   averageExecutionTime: number;
-  lastExecuted?: Date;
-  popularity: number;
-  rating: number;
+  popularity?: number;
+  rating?: number;
 }
 
-// 工作流执行
+/**
+ * Complete workflow
+ */
+export interface Workflow {
+  id: string;
+  name: string;
+  description: string;
+  version: string;
+  status: WorkflowStatus;
+  definition: WorkflowDefinition;
+  settings: WorkflowSettings;
+  metadata: WorkflowMetadata;
+  ownerId: string;
+  createdAt: Date;
+  updatedAt: Date;
+  lastExecutedAt?: Date;
+  executionCount?: number;
+  successCount?: number;
+  failureCount?: number;
+  avgExecutionTime?: number;
+}
+
+/**
+ * Workflow execution
+ */
 export interface WorkflowExecution {
   id: string;
   workflowId: string;
-  status: ExecutionStatus;
+  status: WorkflowExecutionStatus;
   startTime: Date;
   endTime?: Date;
-  duration?: number; // milliseconds
-  triggeredBy: string;
-  input?: any;
-  output?: any;
-  error?: ExecutionError;
-  nodeExecutions: NodeExecution[];
-  metrics: ExecutionMetrics;
+  duration?: number; // in milliseconds
+  triggeredBy?: string;
+  triggerType: WorkflowTriggerType;
+  inputData: Record<string, any>;
+  error?: string;
+  metadata: Record<string, any>;
+  results?: AgentExecutionResult[];
 }
 
-// 执行状态
-export enum ExecutionStatus {
-  PENDING = 'pending',
-  RUNNING = 'running',
-  SUCCESS = 'success',
-  FAILED = 'failed',
-  CANCELLED = 'cancelled',
-  TIMEOUT = 'timeout'
-}
-
-// 执行错误
-export interface ExecutionError {
-  code: string;
-  message: string;
-  nodeId?: string;
-  stack?: string;
-  details?: Record<string, any>;
-}
-
-// 节点执行
-export interface NodeExecution {
+/**
+ * Agent execution result
+ */
+export interface AgentExecutionResult {
   id: string;
-  nodeId: string;
-  status: ExecutionStatus;
+  executionId: string;
+  agentId: string;
+  agentType: string;
+  agentCategory: AgentCategory;
+  status: AgentExecutionStatus;
+  orderIndex: number;
+  inputData: any;
+  outputData: any;
   startTime: Date;
-  endTime?: Date;
-  duration?: number;
-  input?: any;
-  output?: any;
-  error?: ExecutionError;
-  retryCount: number;
+  endTime: Date;
+  duration: number; // in milliseconds
+  error?: string;
+  metrics: AgentExecutionMetrics;
 }
 
-// 执行指标
-export interface ExecutionMetrics {
-  totalNodes: number;
-  executedNodes: number;
-  failedNodes: number;
-  skippedNodes: number;
-  dataProcessed: number; // bytes
-  apiCalls: number;
-  resourceUsage: {
-    cpu: number; // percentage
-    memory: number; // MB
-    storage: number; // MB
-  };
+/**
+ * Agent execution metrics
+ */
+export interface AgentExecutionMetrics {
+  memoryUsed: number; // in MB
+  cpuTime: number; // in seconds
+  networkCalls?: number;
+  llmCalls?: number;
+  [key: string]: any;
 }
 
-// 工作流模板
+/**
+ * Execution event
+ */
+export interface ExecutionEvent {
+  id: string;
+  executionId: string;
+  eventType: ExecutionEventType;
+  agentId?: string;
+  data: Record<string, any>;
+  timestamp: Date;
+}
+
+/**
+ * Execution event types
+ */
+export type ExecutionEventType =
+  | 'execution.started'
+  | 'execution.completed'
+  | 'execution.failed'
+  | 'execution.cancelled'
+  | 'agent.started'
+  | 'agent.progress'
+  | 'agent.completed'
+  | 'agent.failed'
+  | 'agent.skipped';
+
+/**
+ * Create workflow DTO
+ */
+export interface CreateWorkflowDto {
+  name: string;
+  description?: string;
+  version?: string;
+  definition: WorkflowDefinition;
+  settings?: Partial<WorkflowSettings>;
+  metadata?: Partial<WorkflowMetadata>;
+}
+
+/**
+ * Update workflow DTO
+ */
+export interface UpdateWorkflowDto {
+  name?: string;
+  description?: string;
+  version?: string;
+  status?: WorkflowStatus;
+  definition?: WorkflowDefinition;
+  settings?: Partial<WorkflowSettings>;
+  metadata?: Partial<WorkflowMetadata>;
+}
+
+/**
+ * Execute workflow DTO
+ */
+export interface ExecuteWorkflowDto {
+  inputData?: Record<string, any>;
+  triggerType?: WorkflowTriggerType;
+  metadata?: Record<string, any>;
+}
+
+/**
+ * Workflow filters
+ */
+export interface WorkflowFilters {
+  status?: WorkflowStatus;
+  category?: string;
+  tags?: string[];
+  search?: string;
+  limit?: number;
+  offset?: number;
+  sortBy?: 'name' | 'createdAt' | 'updatedAt' | 'executionCount';
+  sortOrder?: 'asc' | 'desc';
+}
+
+/**
+ * Execution filters
+ */
+export interface ExecutionFilters {
+  workflowId?: string;
+  status?: WorkflowExecutionStatus;
+  triggeredBy?: string;
+  triggerType?: WorkflowTriggerType;
+  startDate?: Date;
+  endDate?: Date;
+  limit?: number;
+  offset?: number;
+}
+
+/**
+ * Workflow template
+ */
 export interface WorkflowTemplate {
   id: string;
   name: string;
   description: string;
   category: string;
-  tags: string[];
   difficulty: 'beginner' | 'intermediate' | 'advanced';
-  estimatedTime: number; // minutes
-  workflow: Partial<Workflow>;
-  parameters: TemplateParameter[];
-  instructions: string[];
-  examples: TemplateExample[];
-  author: string;
-  rating: number;
+  definition: WorkflowDefinition;
+  settings: WorkflowSettings;
+  metadata: WorkflowMetadata;
+  tags: string[];
+  authorId?: string;
   downloads: number;
+  rating: number;
+  featured: boolean;
+  published: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
 
-// 模板参数
-export interface TemplateParameter {
-  name: string;
-  type: 'string' | 'number' | 'boolean' | 'select' | 'multiselect';
-  description: string;
-  required: boolean;
-  defaultValue?: any;
-  options?: string[];
-  validation?: {
-    min?: number;
-    max?: number;
-    pattern?: string;
-  };
+/**
+ * Workflow validation result
+ */
+export interface WorkflowValidationResult {
+  isValid: boolean;
+  errors: WorkflowValidationError[];
+  warnings: string[];
 }
 
-// 模板示例
-export interface TemplateExample {
-  name: string;
-  description: string;
-  parameters: Record<string, any>;
-  expectedOutput?: any;
+/**
+ * Workflow validation error
+ */
+export interface WorkflowValidationError {
+  type: 'missing_agent' | 'invalid_connection' | 'circular_dependency' | 'invalid_config' | 'incompatible_data';
+  message: string;
+  agentId?: string;
+  field?: string;
 }
 
-// 工作流版本
-export interface WorkflowVersion {
-  id: string;
+/**
+ * Data flow validation result
+ */
+export interface DataFlowValidationResult {
+  compatible: boolean;
+  sourceAgent: string;
+  targetAgent: string;
+  sourceOutputType: string;
+  targetInputType: string;
+  transformationRequired: boolean;
+  errors: string[];
+}
+
+/**
+ * Execution options
+ */
+export interface ExecutionOptions {
+  dryRun?: boolean;
+  skipValidation?: boolean;
+  startFromAgent?: string;
+  stopAtAgent?: string;
+  timeout?: number;
+  retryPolicy?: Partial<RetryPolicy>;
+}
+
+/**
+ * Execution summary
+ */
+export interface ExecutionSummary {
+  executionId: string;
   workflowId: string;
-  version: string;
-  name: string;
-  description: string;
-  changes: string[];
-  workflow: Workflow;
-  createdAt: Date;
-  createdBy: string;
-  active: boolean;
+  workflowName: string;
+  status: WorkflowExecutionStatus;
+  startTime: Date;
+  endTime?: Date;
+  duration?: number;
+  agentsExecuted: number;
+  agentsSucceeded: number;
+  agentsFailed: number;
+  totalDataProcessed: number;
+  error?: string;
 }
-
-// Zod验证模式
-export const WorkflowSchema = z.object({
-  id: z.string(),
-  name: z.string().min(1).max(100),
-  description: z.string().max(500),
-  version: z.string(),
-  status: z.nativeEnum(WorkflowStatus),
-  nodes: z.array(z.object({
-    id: z.string(),
-    type: z.nativeEnum(NodeType),
-    name: z.string(),
-    position: z.object({
-      x: z.number(),
-      y: z.number(),
-    }),
-    config: z.record(z.any()),
-    agentId: z.string().optional(),
-    agentCategory: z.nativeEnum(AgentCategory).optional(),
-    enabled: z.boolean(),
-  })),
-  connections: z.array(z.object({
-    id: z.string(),
-    sourceNodeId: z.string(),
-    targetNodeId: z.string(),
-    sourcePort: z.string().optional(),
-    targetPort: z.string().optional(),
-    condition: z.string().optional(),
-    enabled: z.boolean(),
-  })),
-  triggers: z.array(z.object({
-    id: z.string(),
-    type: z.nativeEnum(TriggerType),
-    name: z.string(),
-    config: z.record(z.any()),
-    enabled: z.boolean(),
-  })),
-  settings: z.object({
-    maxConcurrentExecutions: z.number().min(1).max(100),
-    executionTimeout: z.number().min(1).max(86400),
-    retryPolicy: z.object({
-      enabled: z.boolean(),
-      maxRetries: z.number().min(0).max(10),
-      backoffStrategy: z.enum(['fixed', 'exponential', 'linear']),
-      backoffMs: z.number().min(100),
-    }),
-    errorHandling: z.object({
-      strategy: z.enum(['stop', 'continue', 'retry']),
-      notifyOnError: z.boolean(),
-      errorWebhook: z.string().optional(),
-    }),
-    logging: z.object({
-      level: z.enum(['debug', 'info', 'warn', 'error']),
-      retention: z.number().min(1).max(365),
-      includeData: z.boolean(),
-    }),
-  }),
-  metadata: z.object({
-    tags: z.array(z.string()),
-    category: z.string(),
-    author: z.string(),
-    documentation: z.string().optional(),
-    changelog: z.array(z.object({
-      version: z.string(),
-      date: z.date(),
-      changes: z.array(z.string()),
-      author: z.string(),
-    })),
-    stats: z.object({
-      totalExecutions: z.number(),
-      successfulExecutions: z.number(),
-      failedExecutions: z.number(),
-      averageExecutionTime: z.number(),
-      lastExecuted: z.date().optional(),
-      popularity: z.number(),
-      rating: z.number(),
-    }),
-  }),
-  createdAt: z.date(),
-  updatedAt: z.date(),
-  ownerId: z.string(),
-});

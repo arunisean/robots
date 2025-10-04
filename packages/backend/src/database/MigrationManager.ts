@@ -13,10 +13,12 @@ export interface Migration {
 export class MigrationManager {
   private pool: Pool;
   private migrationsPath: string;
+  private seedsPath: string;
 
-  constructor(pool: Pool, migrationsPath?: string) {
+  constructor(pool: Pool, migrationsPath?: string, seedsPath?: string) {
     this.pool = pool;
     this.migrationsPath = migrationsPath || join(__dirname, 'migrations');
+    this.seedsPath = seedsPath || join(__dirname, 'seeds');
   }
 
   /**
@@ -234,6 +236,120 @@ export class MigrationManager {
     } catch (error) {
       logger.error('Failed to get database info:', error);
       throw error;
+    }
+  }
+
+  /**
+   * 获取所有seed文件
+   */
+  private getSeedFiles(): Migration[] {
+    try {
+      const files = readdirSync(this.seedsPath)
+        .filter(file => file.endsWith('.sql'))
+        .sort();
+
+      return files.map(file => {
+        const id = file.replace('.sql', '');
+        const name = id.replace(/^\d+_/, '').replace(/_/g, ' ');
+        const sql = readFileSync(join(this.seedsPath, file), 'utf8');
+
+        return { id, name, sql };
+      });
+    } catch (error) {
+      // Seeds directory might not exist, that's okay
+      logger.debug('No seed files found or seeds directory does not exist');
+      return [];
+    }
+  }
+
+  /**
+   * 运行seed数据
+   */
+  async runSeeds(force: boolean = false): Promise<void> {
+    try {
+      const seedFiles = this.getSeedFiles();
+      
+      if (seedFiles.length === 0) {
+        logger.info('No seed files found');
+        return;
+      }
+
+      logger.info(`Found ${seedFiles.length} seed files`);
+
+      for (const seed of seedFiles) {
+        await this.applySeed(seed, force);
+      }
+
+      logger.info('All seeds completed successfully');
+    } catch (error) {
+      logger.error('Seed failed:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * 应用单个seed
+   */
+  private async applySeed(seed: Migration, force: boolean = false): Promise<void> {
+    const client = await this.pool.connect();
+    
+    try {
+      await client.query('BEGIN');
+      
+      // 执行seed SQL
+      await client.query(seed.sql);
+      
+      await client.query('COMMIT');
+      logger.info(`Applied seed: ${seed.id} - ${seed.name}`);
+    } catch (error) {
+      await client.query('ROLLBACK');
+      
+      // If not forcing, log error but don't throw (seeds might fail due to duplicates)
+      if (force) {
+        logger.error(`Failed to apply seed ${seed.id}:`, error);
+        throw error;
+      } else {
+        logger.warn(`Seed ${seed.id} failed (this is normal if data already exists):`, error);
+      }
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * 重置数据库（危险操作！）
+   */
+  async resetDatabase(): Promise<void> {
+    const client = await this.pool.connect();
+    
+    try {
+      logger.warn('Resetting database - this will delete all data!');
+      
+      await client.query('BEGIN');
+      
+      // Drop all tables
+      await client.query(`
+        DO $$ DECLARE
+          r RECORD;
+        BEGIN
+          FOR r IN (SELECT tablename FROM pg_tables WHERE schemaname = 'public') LOOP
+            EXECUTE 'DROP TABLE IF EXISTS ' || quote_ident(r.tablename) || ' CASCADE';
+          END LOOP;
+        END $$;
+      `);
+      
+      await client.query('COMMIT');
+      logger.info('Database reset completed');
+      
+      // Re-run migrations
+      await this.runMigrations();
+      
+    } catch (error) {
+      await client.query('ROLLBACK');
+      logger.error('Failed to reset database:', error);
+      throw error;
+    } finally {
+      client.release();
     }
   }
 }

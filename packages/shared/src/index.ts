@@ -68,15 +68,39 @@ export type {
   ValidateAgentOutput
 } from './types/validate-agent';
 
-export {
-  WorkflowSchema
-} from './types/workflow';
-
+// Export workflow types
 export type {
+  WorkflowStatus,
+  WorkflowExecutionStatus,
+  WorkflowTriggerType,
+  AgentExecutionStatus,
+  WorkflowAgent,
+  WorkflowDefinition,
+  WorkflowConnection,
+  WorkflowSettings,
+  RetryPolicy,
+  ErrorHandlingPolicy,
+  LoggingPolicy,
+  WorkflowMetadata,
+  ChangelogEntry,
+  WorkflowStats,
   Workflow,
-  WorkflowNode,
   WorkflowExecution,
-  WorkflowTemplate
+  AgentExecutionResult,
+  AgentExecutionMetrics,
+  ExecutionEvent,
+  ExecutionEventType,
+  CreateWorkflowDto,
+  UpdateWorkflowDto,
+  ExecuteWorkflowDto,
+  WorkflowFilters,
+  ExecutionFilters,
+  WorkflowTemplate,
+  WorkflowValidationResult,
+  WorkflowValidationError,
+  DataFlowValidationResult,
+  ExecutionOptions,
+  ExecutionSummary
 } from './types/workflow';
 
 // Export utility functions
