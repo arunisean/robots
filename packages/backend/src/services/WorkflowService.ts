@@ -79,8 +79,9 @@ export class WorkflowService extends EventEmitter {
 
   /**
    * List workflows for a user
+   * Supports admin access to view all workflows
    */
-  async listWorkflows(userId: string, filters?: WorkflowFilters): Promise<{
+  async listWorkflows(userId: string, filters?: WorkflowFilters & { isAdmin?: boolean; excludeTestData?: boolean }): Promise<{
     workflows: Workflow[];
     total: number;
     page: number;
@@ -89,8 +90,18 @@ export class WorkflowService extends EventEmitter {
     this.logger.debug(`Listing workflows for user ${userId}`);
 
     try {
-      const workflows = await this.workflowRepo.findByOwner(userId, filters);
-      const total = await this.workflowRepo.countByOwner(userId, filters);
+      let workflows: Workflow[];
+      let total: number;
+
+      // Admin can see all workflows
+      if (filters?.isAdmin) {
+        workflows = await this.workflowRepo.findAll(filters);
+        total = await this.workflowRepo.countAll(filters);
+      } else {
+        // Regular users only see their own workflows
+        workflows = await this.workflowRepo.findByOwner(userId, filters);
+        total = await this.workflowRepo.countByOwner(userId, filters);
+      }
 
       const page = filters?.offset ? Math.floor(filters.offset / (filters.limit || 10)) + 1 : 1;
       const pageSize = filters?.limit || 10;

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { workflowAPI, publicExecutionAPI } from '../lib/api';
+import { workflowAPI } from '../lib/api';
 
 export default function TestAPIPage() {
     const [result, setResult] = useState<any>(null);
@@ -24,6 +24,14 @@ export default function TestAPIPage() {
 
     const tests = [
         {
+            name: '后端健康检查',
+            description: 'GET /health',
+            fn: async () => {
+                const response = await fetch('http://localhost:3001/health');
+                return response.json();
+            },
+        },
+        {
             name: '列出所有工作流',
             description: 'GET /api/public/workflows',
             fn: () => workflowAPI.list(),
@@ -34,65 +42,25 @@ export default function TestAPIPage() {
             fn: () => workflowAPI.list({ status: 'active' }),
         },
         {
+            name: '列出草稿工作流',
+            description: 'GET /api/public/workflows?status=draft',
+            fn: () => workflowAPI.list({ status: 'draft' }),
+        },
+        {
             name: '搜索工作流',
             description: 'GET /api/public/workflows?search=test',
             fn: () => workflowAPI.list({ search: 'test' }),
         },
         {
-            name: '创建测试工作流',
-            description: 'POST /api/public/workflows',
-            fn: () => workflowAPI.create({
-                name: 'API Test Workflow',
-                description: 'Created from test page',
-                status: 'draft',
-                version: '1.0.0',
-                definition: {
-                    nodes: [
-                        {
-                            id: 'test-agent-1',
-                            agentType: 'work',
-                            agentCategory: 'work',
-                            config: {},
-                            order: 0,
-                        },
-                    ],
-                    connections: [],
-                },
-                settings: {
-                    maxConcurrentExecutions: 1,
-                    executionTimeout: 300,
-                    retryPolicy: {
-                        enabled: false,
-                        maxRetries: 3,
-                        backoffStrategy: 'exponential',
-                        backoffMs: 1000,
-                    },
-                    errorHandling: {
-                        strategy: 'stop',
-                        notifyOnError: true,
-                    },
-                    logging: {
-                        level: 'info',
-                        retention: 30,
-                        includeData: true,
-                    },
-                },
-                metadata: {
-                    tags: ['test'],
-                    category: 'general',
-                },
-            }),
+            name: '分页查询 (前5个)',
+            description: 'GET /api/public/workflows?limit=5',
+            fn: () => workflowAPI.list({ limit: 5 }),
         },
         {
-            name: '列出所有执行',
-            description: 'GET /api/executions',
-            fn: () => executionAPI.list(),
-        },
-        {
-            name: '测试后端健康',
-            description: 'GET /health',
+            name: 'WebSocket健康检查',
+            description: 'GET /api/ws/health',
             fn: async () => {
-                const response = await fetch('http://localhost:3001/health');
+                const response = await fetch('http://localhost:3001/api/ws/health');
                 return response.json();
             },
         },
@@ -104,6 +72,23 @@ export default function TestAPIPage() {
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold text-gray-900 mb-2">🧪 API 测试工具</h1>
                     <p className="text-gray-600">测试后端API端点和功能</p>
+                </div>
+
+                {/* Info Banner */}
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+                    <div className="flex items-start">
+                        <div className="text-blue-600 text-2xl mr-3">ℹ️</div>
+                        <div>
+                            <h3 className="font-semibold text-blue-900 mb-1">测试说明</h3>
+                            <p className="text-blue-800 text-sm">
+                                此页面仅用于测试API读取功能。如需创建工作流，请访问{' '}
+                                <a href="/workflows/new" className="underline font-semibold hover:text-blue-600">
+                                    创建工作流页面
+                                </a>
+                                。
+                            </p>
+                        </div>
+                    </div>
                 </div>
 
                 {/* Test Buttons */}

@@ -402,6 +402,102 @@ export class WorkflowRepository {
   }
 
   /**
+   * Find all workflows (admin only)
+   */
+  async findAll(filters?: WorkflowFilters & { excludeTestData?: boolean }): Promise<Workflow[]> {
+    try {
+      const conditions: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      // Build WHERE clause
+      if (filters?.status) {
+        conditions.push(`w.status = $${paramIndex++}`);
+        params.push(filters.status);
+      }
+
+      if (filters?.search) {
+        conditions.push(`(w.name ILIKE $${paramIndex} OR w.description ILIKE $${paramIndex})`);
+        params.push(`%${filters.search}%`);
+        paramIndex++;
+      }
+
+      // Exclude test data if requested
+      if (filters?.excludeTestData) {
+        conditions.push(`u.is_test_user = FALSE`);
+      }
+
+      const whereClause = conditions.length > 0 
+        ? `WHERE ${conditions.join(' AND ')}`
+        : '';
+
+      const limit = filters?.limit || 50;
+      const offset = filters?.offset || 0;
+
+      const query = `
+        SELECT w.* 
+        FROM workflows w
+        LEFT JOIN users u ON w.owner_id = u.id
+        ${whereClause}
+        ORDER BY w.created_at DESC
+        LIMIT $${paramIndex++} OFFSET $${paramIndex++}
+      `;
+
+      params.push(limit, offset);
+
+      const result = await this.pool.query(query, params);
+      return result.rows.map(row => this.mapRowToWorkflow(row));
+    } catch (error) {
+      this.logger.error('Failed to find all workflows:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Count all workflows (admin only)
+   */
+  async countAll(filters?: WorkflowFilters & { excludeTestData?: boolean }): Promise<number> {
+    try {
+      const conditions: string[] = [];
+      const params: any[] = [];
+      let paramIndex = 1;
+
+      if (filters?.status) {
+        conditions.push(`w.status = $${paramIndex++}`);
+        params.push(filters.status);
+      }
+
+      if (filters?.search) {
+        conditions.push(`(w.name ILIKE $${paramIndex} OR w.description ILIKE $${paramIndex})`);
+        params.push(`%${filters.search}%`);
+        paramIndex++;
+      }
+
+      // Exclude test data if requested
+      if (filters?.excludeTestData) {
+        conditions.push(`u.is_test_user = FALSE`);
+      }
+
+      const whereClause = conditions.length > 0 
+        ? `WHERE ${conditions.join(' AND ')}`
+        : '';
+
+      const query = `
+        SELECT COUNT(*) as count 
+        FROM workflows w
+        LEFT JOIN users u ON w.owner_id = u.id
+        ${whereClause}
+      `;
+
+      const result = await this.pool.query(query, params);
+      return parseInt(result.rows[0].count);
+    } catch (error) {
+      this.logger.error('Failed to count all workflows:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Begin transaction
    */
   async beginTransaction(): Promise<PoolClient> {

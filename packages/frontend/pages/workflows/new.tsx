@@ -27,6 +27,87 @@ export default function NewWorkflowPage() {
     },
   ]);
 
+  // Workflow templates
+  const templates = {
+    empty: {
+      name: '空白工作流',
+      description: '从头开始创建',
+      agents: [
+        {
+          id: 'agent-1',
+          agentType: 'work',
+          agentCategory: 'work',
+          config: {},
+          order: 0,
+        },
+      ],
+    },
+    contentPipeline: {
+      name: '内容生成流水线',
+      description: '数据采集 → 内容生成 → 发布',
+      agents: [
+        {
+          id: 'work-1',
+          agentType: 'web_scraper',
+          agentCategory: 'work',
+          config: { url: 'https://example.com' },
+          order: 0,
+        },
+        {
+          id: 'process-1',
+          agentType: 'content_generator',
+          agentCategory: 'process',
+          config: { model: 'gpt-4' },
+          order: 1,
+        },
+        {
+          id: 'publish-1',
+          agentType: 'twitter',
+          agentCategory: 'publish',
+          config: { platform: 'twitter' },
+          order: 2,
+        },
+      ],
+    },
+    dataAnalysis: {
+      name: '数据分析工作流',
+      description: '数据采集 → 数据处理 → 质量验证',
+      agents: [
+        {
+          id: 'work-1',
+          agentType: 'api_collector',
+          agentCategory: 'work',
+          config: { endpoint: 'https://api.example.com' },
+          order: 0,
+        },
+        {
+          id: 'process-1',
+          agentType: 'data_transformer',
+          agentCategory: 'process',
+          config: { format: 'json' },
+          order: 1,
+        },
+        {
+          id: 'validate-1',
+          agentType: 'quality_assessor',
+          agentCategory: 'validate',
+          config: { threshold: 0.8 },
+          order: 2,
+        },
+      ],
+    },
+  };
+
+  const loadTemplate = (templateKey: keyof typeof templates) => {
+    const template = templates[templateKey];
+    setFormData({
+      ...formData,
+      name: template.name,
+      description: template.description,
+    });
+    setAgents(template.agents);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -151,9 +232,43 @@ export default function NewWorkflowPage() {
             </div>
           )}
 
+          {/* Template Selection */}
+          <div className="bg-white rounded-lg shadow p-6">
+            <h2 className="text-xl font-semibold mb-4">选择模板</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <button
+                type="button"
+                onClick={() => loadTemplate('empty')}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left"
+              >
+                <div className="text-2xl mb-2">📄</div>
+                <div className="font-semibold text-gray-900">空白工作流</div>
+                <div className="text-sm text-gray-500 mt-1">从头开始创建</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => loadTemplate('contentPipeline')}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left"
+              >
+                <div className="text-2xl mb-2">📝</div>
+                <div className="font-semibold text-gray-900">内容生成流水线</div>
+                <div className="text-sm text-gray-500 mt-1">采集 → 生成 → 发布</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => loadTemplate('dataAnalysis')}
+                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left"
+              >
+                <div className="text-2xl mb-2">📊</div>
+                <div className="font-semibold text-gray-900">数据分析工作流</div>
+                <div className="text-sm text-gray-500 mt-1">采集 → 处理 → 验证</div>
+              </button>
+            </div>
+          </div>
+
           {/* Basic Info */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
+            <h2 className="text-xl font-semibold mb-4">基本信息</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">

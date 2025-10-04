@@ -95,14 +95,33 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
   /**
    * Create workflow
    * POST /api/public/workflows
+   * 
+   * Note: This endpoint is for testing only.
+   * Production should use authenticated /api/workflows endpoint.
    */
   fastify.post('/', async (request, reply) => {
     try {
       const workflowData = request.body as CreateWorkflowDto;
+
+      // Basic validation - ensure required fields exist
+      if (!workflowData.name || !workflowData.definition) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Missing required fields: name and definition are required',
+        });
+      }
+
+      if (!workflowData.definition.nodes || workflowData.definition.nodes.length === 0) {
+        return reply.status(400).send({
+          success: false,
+          error: 'Workflow must have at least one agent node',
+        });
+      }
+
       // Use test user from seed data
       const testUserId = '00000000-0000-0000-0000-000000000001';
 
-      // Skip validation for testing - directly use repository
+      // Create workflow (skip detailed validation for testing)
       const workflow = await fastify.db.workflows.create(workflowData, testUserId);
 
       return reply.status(201).send({

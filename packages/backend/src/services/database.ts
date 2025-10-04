@@ -69,6 +69,10 @@ export class DatabaseService {
     return this.migrationManager;
   }
 
+  getPool(): Pool {
+    return this.pool;
+  }
+
   async query<T extends Record<string, any> = any>(text: string, params?: any[]): Promise<PgQueryResult<T>> {
     const start = Date.now();
     try {
