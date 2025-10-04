@@ -19,13 +19,13 @@
     - _Requirements: 2.4, 4.5_
 
 - [ ] 3. Implement WorkflowService
-  - [ ] 3.1 Create WorkflowService class with CRUD operations
+  - [x] 3.1 Create WorkflowService class with CRUD operations
     - Implement createWorkflow, getWorkflow, updateWorkflow, deleteWorkflow
     - Implement listWorkflows with filtering
     - Add proper error handling and validation
     - _Requirements: 2.4, 12.1_
 
-  - [ ] 3.2 Implement workflow validation logic
+  - [x] 3.2 Implement workflow validation logic
     - Create WorkflowValidator class
     - Validate agent configuration schemas
     - Validate agent connections and data flow compatibility
