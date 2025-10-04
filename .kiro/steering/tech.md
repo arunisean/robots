@@ -10,11 +10,13 @@
 ## Backend Stack
 
 - **Runtime**: Fastify web framework
-- **Database**: PostgreSQL for persistent data
+- **Database**: PostgreSQL for persistent data with pg driver
 - **Cache**: Redis for session and temporary data
 - **Authentication**: JWT with ethers.js for Web3 wallet integration
 - **Validation**: Zod for runtime type validation
 - **Testing**: Jest with ts-jest
+- **Real-time**: WebSocket support via @fastify/websocket (planned)
+- **ORM**: Custom repository pattern with raw SQL for performance
 
 ## Frontend Stack
 
@@ -66,10 +68,18 @@ npm run clean        # Clean build artifacts
 docker-compose up postgres redis -d  # Start databases
 docker-compose down                  # Stop all services
 
+# Database management
+npm run migrate      # Run database migrations
+npm run seed         # Seed database with example data
+npm run db:reset     # Reset database (drop and recreate)
+
 # Package-specific (run from package directory)
 npm run dev          # Start package dev server
 npm run build        # Build specific package
 npm run test         # Test specific package
+
+# Workflow testing
+./scripts/test-workflow-system.sh  # Test workflow system end-to-end
 ```
 
 ## Environment Setup

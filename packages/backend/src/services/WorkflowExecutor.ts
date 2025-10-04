@@ -16,6 +16,7 @@ import { AgentFactory } from '../agents/factory/AgentFactory';
 import { IAgent } from '../agents/base/IAgent';
 import { Logger } from '../utils/logger';
 import { getErrorMessage } from '../utils/error-handler';
+import { eventBroadcaster } from './EventBroadcaster';
 
 /**
  * Execution context for a workflow run
@@ -88,6 +89,12 @@ export class WorkflowExecutor extends EventEmitter {
         workflowName: workflow.name
       });
 
+      // Broadcast WebSocket event
+      eventBroadcaster.emitExecutionStarted(execution.id, workflow.id, {
+        workflowName: workflow.name,
+        agentCount: workflow.definition.nodes.length
+      });
+
       // Update execution status to running
       await this.executionRepo.updateStatus(execution.id, 'running');
 
@@ -123,6 +130,23 @@ export class WorkflowExecutor extends EventEmitter {
 
         this.logger.info(`Executing agent ${i + 1}/${sortedAgents.length}: ${agentNode.id} (${agentNode.agentType})`);
 
+        // Broadcast agent started event
+        eventBroadcaster.emitAgentStarted(
+          execution.id,
+          workflow.id,
+          agentNode.id,
+          agentNode.agentType
+        );
+
+        // Broadcast progress
+        const progress = Math.round(((i + 1) / sortedAgents.length) * 100);
+        eventBroadcaster.emitExecutionProgress(
+          execution.id,
+          workflow.id,
+          progress,
+          agentNode.id
+        );
+
         try {
           // Execute agent
           const result = await this.executeAgent(
@@ -135,6 +159,15 @@ export class WorkflowExecutor extends EventEmitter {
           // Store result
           context.agentResults.set(agentNode.id, result.outputData);
           previousOutput = result.outputData;
+
+          // Broadcast agent completed event
+          eventBroadcaster.emitAgentCompleted(
+            execution.id,
+            workflow.id,
+            agentNode.id,
+            agentNode.agentType,
+            result.outputData
+          );
 
           // Save agent result to database
           await this.executionRepo.createAgentResult({
@@ -177,6 +210,15 @@ export class WorkflowExecutor extends EventEmitter {
             error: getErrorMessage(error)
           }, agentNode.id);
 
+          // Broadcast agent failed event
+          eventBroadcaster.emitAgentFailed(
+            execution.id,
+            workflow.id,
+            agentNode.id,
+            agentNode.agentType,
+            getErrorMessage(error)
+          );
+
           // Handle error based on workflow settings
           if (workflow.settings.errorHandling.strategy === 'stop') {
             throw error;
@@ -194,6 +236,12 @@ export class WorkflowExecutor extends EventEmitter {
       // Emit execution completed event
       await this.emitExecutionEvent(execution.id, 'execution.completed', {
         workflowId: workflow.id,
+        duration: Date.now() - context.startTime.getTime(),
+        agentsExecuted: context.agentResults.size
+      });
+
+      // Broadcast execution completed event
+      eventBroadcaster.emitExecutionCompleted(execution.id, workflow.id, {
         duration: Date.now() - context.startTime.getTime(),
         agentsExecuted: context.agentResults.size
       });
@@ -219,6 +267,9 @@ export class WorkflowExecutor extends EventEmitter {
         workflowId: workflow.id,
         error: getErrorMessage(error)
       });
+
+      // Broadcast execution failed event
+      eventBroadcaster.emitExecutionFailed(execution.id, workflow.id, getErrorMessage(error));
 
       throw error;
 

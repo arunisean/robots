@@ -29,8 +29,19 @@ src/
 │   ├── validate/               # Validate agents (quality assessment)
 │   └── work/                   # Work agents (data collection)
 ├── config/                     # Application configuration
+├── database/                   # Database layer
+│   ├── migrations/             # SQL migration files
+│   ├── seeds/                  # Database seed data
+│   └── repositories/           # Data access layer
+│       ├── WorkflowRepository.ts      # Workflow CRUD operations
+│       └── ExecutionRepository.ts     # Execution tracking
 ├── routes/                     # API route handlers
-├── services/                   # External service integrations
+│   ├── workflows.ts            # Workflow management endpoints
+│   └── executions.ts           # Execution monitoring endpoints
+├── services/                   # Business logic layer
+│   ├── WorkflowService.ts      # Workflow orchestration
+│   ├── WorkflowValidator.ts    # Workflow validation logic
+│   └── WorkflowExecutor.ts     # Sequential agent execution
 ├── utils/                      # Utility functions
 └── __tests__/                  # Test files (mirrors src structure)
 ```
@@ -98,6 +109,43 @@ src/
 - `AgentRuntimeManager`: Lifecycle and resource management
 - `MetricsCollector`: Performance monitoring
 - `LifecycleManager`: State transitions
+
+## Workflow System Architecture
+
+### Database Schema
+- **workflows**: Workflow definitions with agent configurations
+- **workflow_executions**: Execution tracking with status and metrics
+- **agent_execution_results**: Individual agent execution results
+- **workflow_templates**: Reusable workflow templates
+- **execution_events**: Real-time execution event logging
+
+### Repository Layer
+- **WorkflowRepository**: CRUD operations, filtering, pagination, transaction support
+- **ExecutionRepository**: Execution tracking, status updates, metrics collection
+
+### Service Layer
+- **WorkflowService**: Business logic for workflow management
+- **WorkflowValidator**: Comprehensive validation including circular dependency detection
+- **WorkflowExecutor**: Sequential execution engine with data passing and error handling
+
+### API Endpoints
+- `POST /api/workflows` - Create workflow
+- `GET /api/workflows` - List workflows with filtering
+- `GET /api/workflows/:id` - Get workflow details
+- `PUT /api/workflows/:id` - Update workflow
+- `DELETE /api/workflows/:id` - Delete workflow
+- `POST /api/workflows/:id/execute` - Execute workflow
+- `GET /api/executions` - List executions
+- `GET /api/executions/:id` - Get execution details
+- `GET /api/executions/:id/results` - Get agent results
+- `POST /api/executions/:id/cancel` - Cancel execution
+
+### Execution Flow
+1. **Validation**: Structure, circular dependencies, agent order
+2. **Sequential Execution**: Work → Process → Publish → Validate
+3. **Data Passing**: Output from previous agents flows to next
+4. **Error Handling**: Continue/stop strategies with detailed error tracking
+5. **Metrics Collection**: Duration, success rate, resource usage
 
 ## Configuration Files
 

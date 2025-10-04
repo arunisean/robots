@@ -57,20 +57,20 @@
     - Use AgentRuntimeManager for resource allocation
     - _Requirements: 3.1, 3.2_
 
-- [ ] 5. Implement real-time monitoring with WebSocket
-  - [ ] 5.1 Set up WebSocket server in backend
+- [x] 5. Implement real-time monitoring with WebSocket
+  - [x] 5.1 Set up WebSocket server in backend
     - Configure Fastify WebSocket plugin
     - Implement connection management
     - Add authentication for WebSocket connections
     - _Requirements: 5.1, 7.3_
 
-  - [ ] 5.2 Implement event emission system
+  - [x] 5.2 Implement event emission system
     - Create EventBroadcaster class
     - Emit execution events (started, progress, completed, failed)
     - Emit agent-level events
     - _Requirements: 4.3, 5.2_
 
-  - [ ] 5.3 Implement client-side WebSocket handler
+  - [x] 5.3 Implement client-side WebSocket handler
     - Create WebSocket client in frontend
     - Handle reconnection logic
     - Update UI based on received events

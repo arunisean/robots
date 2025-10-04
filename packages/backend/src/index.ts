@@ -1,12 +1,14 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import jwt from '@fastify/jwt';
+import websocket from '@fastify/websocket';
 import { config } from './config';
 import { authRoutes } from './routes/auth';
 import { agentRoutes } from './routes/agents';
 import { workflowRoutes } from './routes/workflows';
 import { executionRoutes } from './routes/executions';
 import { userRoutes } from './routes/users';
+import { websocketRoutes } from './routes/websocket';
 import { DatabaseService } from './services/database';
 import { RedisService } from './services/redis';
 import { AgentFactory } from './agents/factory/AgentFactory';
@@ -30,6 +32,18 @@ async function registerPlugins() {
   // JWT
   await fastify.register(jwt, {
     secret: config.JWT_SECRET,
+  });
+
+  // WebSocket
+  await fastify.register(websocket, {
+    options: {
+      maxPayload: 1048576, // 1MB
+      verifyClient: (info, next) => {
+        // Allow all connections for now
+        // TODO: Add authentication verification
+        next(true);
+      },
+    },
   });
 
   // 数据库连接（必需）
@@ -71,6 +85,7 @@ async function registerRoutes() {
   await fastify.register(agentRoutes, { prefix: '/api/agents' });
   await fastify.register(workflowRoutes, { prefix: '/api/workflows' });
   await fastify.register(executionRoutes, { prefix: '/api/executions' });
+  await fastify.register(websocketRoutes, { prefix: '/api' });
 }
 
 // 健康检查
