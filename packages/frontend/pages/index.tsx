@@ -1,9 +1,10 @@
 import React from 'react';
 import Head from 'next/head';
-import { WalletConnectButton } from '../src/components/WalletConnectButton';
-import { WalletStatus, AuthGuard } from '../src/components/WalletProvider';
+import { useWallet } from '../contexts/WalletContext';
+import { WalletConnection, WalletStatus, AuthGuard } from '../components/WalletConnection';
 
 export default function Home() {
+  const { wallet, auth } = useWallet();
   return (
     <div>
       <Head>
@@ -23,11 +24,7 @@ export default function Home() {
                 </h1>
                 <WalletStatus showDetails />
               </div>
-              <WalletConnectButton 
-                showBalance 
-                onConnected={(address) => console.log('钱包已连接:', address)}
-                onError={(error) => console.error('钱包错误:', error)}
-              />
+              <WalletConnection showBalance showDetails />
             </div>
           </div>
         </div>
@@ -101,7 +98,7 @@ export default function Home() {
                     请连接您的Web3钱包并完成身份认证，即可访问所有Agent功能
                   </p>
                   <div className="flex justify-center space-x-4 flex-wrap gap-2">
-                    <WalletConnectButton size="lg" />
+                    <WalletConnection size="lg" />
                     <a
                       href="/test-api"
                       className="inline-flex items-center px-6 py-3 text-lg font-medium text-blue-600 bg-white border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"

@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { workflowAPI } from '../../lib/api';
+import { workflowAuthAPI } from '../../lib/api-auth';
+import { useWallet } from '../../contexts/WalletContext';
+import { WalletConnection, AuthGuard } from '../../components/WalletConnection';
 
 /**
  * Create new workflow page
  */
 export default function NewWorkflowPage() {
   const router = useRouter();
+  const { auth } = useWallet();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -162,7 +165,7 @@ export default function NewWorkflowPage() {
         },
       };
 
-      const created = await workflowAPI.create(workflow);
+      const created = await workflowAuthAPI.create(workflow);
       router.push(`/workflows/${created.id}`);
     } catch (err: any) {
       setError(err.message || 'Failed to create workflow');
@@ -218,13 +221,17 @@ export default function NewWorkflowPage() {
                 </p>
               </div>
             </div>
+            
+            {/* 钱包连接状态 */}
+            <WalletConnection showDetails={true} />
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <form onSubmit={handleSubmit} className="space-y-6">
+        <AuthGuard requireAuth={true} requireWallet={true}>
+          <form onSubmit={handleSubmit} className="space-y-6">
           {/* Error Message */}
           {error && (
             <div className="bg-red-50 border border-red-200 rounded-lg p-4">
@@ -442,6 +449,7 @@ export default function NewWorkflowPage() {
             </button>
           </div>
         </form>
+        </AuthGuard>
       </div>
     </div>
   );

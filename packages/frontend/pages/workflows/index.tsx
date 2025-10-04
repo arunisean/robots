@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { workflowAPI } from '../../lib/api';
+import { workflowAuthAPI } from '../../lib/api-auth';
+import { useWallet } from '../../contexts/WalletContext';
+import { WalletConnection, AuthGuard } from '../../components/WalletConnection';
 
 /**
  * Workflow list and dashboard page
  */
 export default function WorkflowsPage() {
+  const { auth, isAdmin } = useWallet();
   const [workflows, setWorkflows] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +34,7 @@ export default function WorkflowsPage() {
         filters.search = searchTerm;
       }
 
-      const response = await workflowAPI.list(filters);
+      const response = await workflowAuthAPI.list(filters);
       setWorkflows(response.workflows || []);
     } catch (err: any) {
       setError(err.message || 'Failed to load workflows');
@@ -45,17 +48,39 @@ export default function WorkflowsPage() {
     loadWorkflows();
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this workflow?')) {
+  const handleDelete = async (id: string, workflowName: string) => {
+    if (!confirm(`Are you sure you want to delete "${workflowName}"? This action cannot be undone.`)) {
       return;
     }
 
     try {
-      await workflowAPI.delete(id);
-      loadWorkflows();
+      await workflowAuthAPI.delete(id);
+      setWorkflows(workflows.filter(w => w.id !== id));
+      // Show success message
+      const successDiv = document.createElement('div');
+      successDiv.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
+      successDiv.textContent = 'Workflow deleted successfully';
+      document.body.appendChild(successDiv);
+      setTimeout(() => document.body.removeChild(successDiv), 3000);
     } catch (err: any) {
-      alert('Failed to delete workflow: ' + err.message);
+      // Show error message
+      const errorDiv = document.createElement('div');
+      errorDiv.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50';
+      errorDiv.textContent = `Failed to delete workflow: ${err.message}`;
+      document.body.appendChild(errorDiv);
+      setTimeout(() => document.body.removeChild(errorDiv), 5000);
     }
+  };
+
+  // Check if user can delete a workflow
+  const canDelete = (workflow: any): boolean => {
+    // Admin can delete any workflow
+    if (isAdmin()) return true;
+    
+    // User can delete their own workflows
+    // Note: We assume the workflow belongs to the current user if it's in their list
+    // The backend already filters workflows by ownership
+    return true;
   };
 
   const getStatusColor = (status: string) => {
@@ -80,23 +105,38 @@ export default function WorkflowsPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Workflows</h1>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Workflows
+                {isAdmin() && (
+                  <span className="ml-2 px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded">
+                    Admin View
+                  </span>
+                )}
+              </h1>
               <p className="mt-1 text-sm text-gray-500">
-                Manage and monitor your automation workflows
+                {isAdmin() 
+                  ? 'Manage and monitor all automation workflows' 
+                  : 'Manage and monitor your automation workflows'
+                }
               </p>
             </div>
-            <Link
-              href="/workflows/new"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-            >
-              + Create Workflow
-            </Link>
+            
+            <div className="flex items-center space-x-4">
+              <WalletConnection showDetails={true} />
+              <Link
+                href="/workflows/new"
+                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+              >
+                + Create Workflow
+              </Link>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <AuthGuard requireAuth={true} requireWallet={true}>
         {/* Filters */}
         <div className="bg-white rounded-lg shadow p-4 mb-6">
           <div className="flex flex-col sm:flex-row gap-4">
@@ -187,13 +227,20 @@ export default function WorkflowsPage() {
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">
                           {workflow.name}
                         </h3>
-                        <span
-                          className={`inline-block px-2 py-1 text-xs font-medium rounded ${getStatusColor(
-                            workflow.status
-                          )}`}
-                        >
-                          {workflow.status}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          <span
+                            className={`inline-block px-2 py-1 text-xs font-medium rounded ${getStatusColor(
+                              workflow.status
+                            )}`}
+                          >
+                            {workflow.status}
+                          </span>
+                          {isAdmin() && workflow.ownerId && (
+                            <span className="px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                              Owner: {workflow.ownerId.slice(0, 8)}...
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
 
@@ -238,12 +285,15 @@ export default function WorkflowsPage() {
                       >
                         Edit
                       </Link>
-                      <button
-                        onClick={() => handleDelete(workflow.id)}
-                        className="px-3 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-sm"
-                      >
-                        Delete
-                      </button>
+                      {canDelete(workflow) && (
+                        <button
+                          onClick={() => handleDelete(workflow.id, workflow.name)}
+                          className="px-3 py-2 bg-red-100 text-red-600 rounded hover:bg-red-200 transition text-sm"
+                          title="Delete workflow"
+                        >
+                          Delete
+                        </button>
+                      )}
                     </div>
 
                     {/* Last Execution */}
@@ -261,6 +311,7 @@ export default function WorkflowsPage() {
             )}
           </>
         )}
+        </AuthGuard>
       </div>
     </div>
   );
