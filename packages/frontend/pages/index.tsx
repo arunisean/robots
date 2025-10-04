@@ -100,13 +100,19 @@ export default function Home() {
                   <p className="text-blue-700 mb-6">
                     请连接您的Web3钱包并完成身份认证，即可访问所有Agent功能
                   </p>
-                  <div className="flex justify-center space-x-4">
+                  <div className="flex justify-center space-x-4 flex-wrap gap-2">
                     <WalletConnectButton size="lg" />
                     <a
-                      href="#"
+                      href="/test-api"
                       className="inline-flex items-center px-6 py-3 text-lg font-medium text-blue-600 bg-white border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
                     >
-                      查看文档
+                      🧪 测试API
+                    </a>
+                    <a
+                      href="/workflows"
+                      className="inline-flex items-center px-6 py-3 text-lg font-medium text-green-600 bg-white border border-green-600 rounded-lg hover:bg-green-50 transition-colors"
+                    >
+                      📋 工作流
                     </a>
                   </div>
                 </div>
@@ -119,10 +125,13 @@ export default function Home() {
                 <p className="text-green-700 mb-6">
                   您已成功连接钱包并完成身份认证，现在可以开始创建和管理您的Agent了。
                 </p>
-                <div className="flex justify-center space-x-4">
-                  <button className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                    创建第一个Agent
-                  </button>
+                <div className="flex justify-center space-x-4 flex-wrap gap-2">
+                  <a href="/workflows" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    📋 工作流管理
+                  </a>
+                  <a href="/test-api" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+                    🧪 API测试
+                  </a>
                   <button className="bg-white hover:bg-green-50 text-green-600 border border-green-600 font-bold py-3 px-6 rounded-lg transition-colors">
                     浏览Agent市场
                   </button>

@@ -31,6 +31,7 @@ async function fetchAPI<T>(
 
 /**
  * Workflow API
+ * Using public endpoints for testing (no authentication required)
  */
 export const workflowAPI = {
   /**
@@ -49,21 +50,21 @@ export const workflowAPI = {
     if (filters?.offset) params.append('offset', filters.offset.toString());
 
     const query = params.toString();
-    return fetchAPI<any>(`/api/workflows${query ? `?${query}` : ''}`);
+    return fetchAPI<any>(`/api/public/workflows${query ? `?${query}` : ''}`);
   },
 
   /**
    * Get workflow by ID
    */
   get: async (id: string) => {
-    return fetchAPI<any>(`/api/workflows/${id}`);
+    return fetchAPI<any>(`/api/public/workflows/${id}`);
   },
 
   /**
    * Create new workflow
    */
   create: async (data: any) => {
-    return fetchAPI<any>('/api/workflows', {
+    return fetchAPI<any>('/api/public/workflows', {
       method: 'POST',
       body: JSON.stringify(data),
     });
@@ -73,7 +74,7 @@ export const workflowAPI = {
    * Update workflow
    */
   update: async (id: string, data: any) => {
-    return fetchAPI<any>(`/api/workflows/${id}`, {
+    return fetchAPI<any>(`/api/public/workflows/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
@@ -83,7 +84,7 @@ export const workflowAPI = {
    * Delete workflow
    */
   delete: async (id: string) => {
-    return fetchAPI<void>(`/api/workflows/${id}`, {
+    return fetchAPI<void>(`/api/public/workflows/${id}`, {
       method: 'DELETE',
     });
   },
@@ -92,7 +93,7 @@ export const workflowAPI = {
    * Execute workflow
    */
   execute: async (id: string, options?: any) => {
-    return fetchAPI<any>(`/api/workflows/${id}/execute`, {
+    return fetchAPI<any>(`/api/public/workflows/${id}/execute`, {
       method: 'POST',
       body: JSON.stringify(options || {}),
     });
@@ -102,7 +103,7 @@ export const workflowAPI = {
    * Get workflow executions
    */
   getExecutions: async (id: string) => {
-    return fetchAPI<any>(`/api/workflows/${id}/executions`);
+    return fetchAPI<any>(`/api/public/workflows/${id}/executions`);
   },
 };
 
