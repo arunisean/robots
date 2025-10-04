@@ -1,7 +1,7 @@
 import { config } from '../config';
 
 // 简单的日志工具
-class Logger {
+export class Logger {
   private logLevel: string;
 
   constructor(level: string = 'info') {

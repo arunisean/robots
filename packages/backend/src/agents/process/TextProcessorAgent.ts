@@ -12,13 +12,14 @@ import {
 } from '@multi-agent-platform/shared';
 import { ProcessAgent } from './ProcessAgent';
 import * as crypto from 'crypto';
+import { getErrorMessage } from '../../utils/error-handler';
 
 /**
  * Text Processor Agent
  * Processes and transforms text content using various NLP techniques
  */
 export class TextProcessorAgent extends ProcessAgent {
-  private llmService: any = null;
+  protected llmService: any = null;
   private processingHistory: any[] = [];
 
   constructor(id: string, name: string, version: string, description: string) {
@@ -149,7 +150,7 @@ export class TextProcessorAgent extends ProcessAgent {
         rulesApplied: appliedRules,
         qualityScore: 0,
         status: 'failed',
-        errorMessage: error.message
+        errorMessage: getErrorMessage(error)
       });
 
       throw error;
@@ -206,7 +207,7 @@ export class TextProcessorAgent extends ProcessAgent {
       // Test with a simple prompt
       await this.callLLMService('Test connection', { maxTokens: 10 });
     } catch (error) {
-      throw new Error(`LLM service connection failed: ${error.message}`);
+      throw new Error(`LLM service connection failed: ${getErrorMessage(error)}`);
     }
   }
 

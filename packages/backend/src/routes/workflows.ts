@@ -15,6 +15,7 @@ interface UpdateWorkflowBody {
   name?: string;
   description?: string;
   status?: 'draft' | 'active' | 'paused' | 'archived' | 'error';
+  version?: string;
   definition?: any;
   settings?: any;
   metadata?: any;

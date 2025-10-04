@@ -50,6 +50,13 @@ export interface ProcessingRuleConfig {
     aggregation?: AggregationRule[];
   };
   
+  // 翻译配置
+  translation?: {
+    targetLanguage: string;
+    provider?: 'google' | 'deepl' | 'azure' | 'llm';
+    preserveFormatting?: boolean;
+  };
+  
   // 质量控制配置
   qualityControl?: {
     checks: QualityCheck[];

@@ -13,6 +13,7 @@ import {
   AgentExecutionContext,
   AgentExecutionResult,
   ResourceUsage,
+  ConfigValidationResult,
   AgentValidationResult
 } from './IAgent';
 import { Logger } from '../../utils/logger';
@@ -30,14 +31,14 @@ interface ValidationResult {
  * Uses template method pattern to define execution flow
  */
 export abstract class BaseAgent extends EventEmitter implements IAgent {
-  protected config: AgentConfig;
+  protected config!: AgentConfig;
   protected status: AgentStatus = AgentStatus.INACTIVE;
-  protected metrics: AgentMetrics;
+  protected metrics!: AgentMetrics;
   protected lastError: Error | null = null;
   protected resourceAllocation: ResourceAllocation | null = null;
   protected logger: Logger;
   protected startTime: Date | null = null;
-  protected resourceUsage: ResourceUsage;
+  protected resourceUsage!: ResourceUsage;
 
   constructor(
     public readonly id: string,
@@ -173,7 +174,7 @@ export abstract class BaseAgent extends EventEmitter implements IAgent {
   /**
    * Validate agent configuration
    */
-  validateConfig(config: AgentConfig): ValidationResult {
+  validateConfig(config: AgentConfig): ConfigValidationResult {
     const errors: string[] = [];
 
     // Basic validation

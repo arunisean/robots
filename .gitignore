@@ -22,6 +22,7 @@ out/
 .idea/
 *.swp
 *.swo
+.kiro/
 
 # OS
 .DS_Store
@@ -109,4 +110,4 @@ packages/chrome-extension/dist/
 
 # Docker
 .dockerignore
-.turbo/cookies/18.cookie
+.turbo/cookies/

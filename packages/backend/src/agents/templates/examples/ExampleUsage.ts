@@ -2,6 +2,7 @@ import { TemplateService } from '../TemplateService';
 import { AgentTemplateGenerator } from '../AgentTemplateGenerator';
 import { DocumentationGenerator } from '../DocumentationGenerator';
 import { AgentCategory } from '@multi-agent-platform/shared';
+import { getErrorMessage } from '../../../utils/error-handler';
 
 /**
  * Example usage of the Agent Template System
@@ -225,7 +226,7 @@ export class ExampleUsage {
       console.log('   4. Register agents with AgentFactory');
 
     } catch (error) {
-      console.error('\n❌ Error running examples:', error.message);
+      console.error('\n❌ Error running examples:', getErrorMessage(error));
     }
   }
 
@@ -245,4 +246,4 @@ if (require.main === module) {
   examples.runAllExamples().catch(console.error);
 }
 
-export { ExampleUsage };
+// ExampleUsage已经通过class声明导出

@@ -24,12 +24,12 @@ export interface IProcessAgent extends IAgent {
   /**
    * Get processing statistics
    */
-  getProcessingStats(): Promise<ProcessingStats>;
+  getProcessingStats?(): Promise<ProcessingStats>;
 
   /**
    * Test processing pipeline with sample data
    */
-  testProcessing(sampleData: any): Promise<ProcessingTestResult>;
+  testProcessing?(sampleData: any): Promise<ProcessingTestResult>;
 }
 
 /**

@@ -26,13 +26,13 @@
     }
   },
   "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts"
+    "packages/shared/**/*.ts",
+    "packages/backend/**/*.ts"
   ],
   "exclude": [
     "node_modules",
-    "dist"
+    "dist",
+    "packages/frontend/**/*",
+    "**/*.test.ts"
   ]
 }

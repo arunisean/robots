@@ -1,6 +1,7 @@
 import { AgentCategory } from '@multi-agent-platform/shared';
 import { AgentTemplateGenerator, AgentTemplate, TemplateOptions, CodeTemplateOptions } from './AgentTemplateGenerator';
 import { Logger } from '../../utils/logger';
+import { getErrorMessage } from '../../utils/error-handler';
 import * as fs from 'fs/promises';
 import * as path from 'path';
 
@@ -66,7 +67,7 @@ export class TemplateService {
       this.logger.error(`Failed to create agent from template:`, error);
       return {
         success: false,
-        error: error.message
+        error: getErrorMessage(error)
       };
     }
   }
@@ -316,7 +317,7 @@ ${this.getCommonPatterns(category, agentType)}
         results.push({
           ...example,
           success: false,
-          error: error.message
+          error: getErrorMessage(error)
         });
       }
     }

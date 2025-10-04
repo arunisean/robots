@@ -24,6 +24,12 @@ export {
 export type {
   ProcessingRule,
   ProcessedData,
+  ProcessedContent,
+  ProcessedMetadata,
+  ProcessingSummary,
+  QualityScore,
+  LLMConfig,
+  LLMUsage,
   ProcessAgentConfig,
   ProcessAgentInput,
   ProcessAgentOutput
@@ -37,9 +43,16 @@ export type {
   PublishTarget,
   PublishContent,
   PublishResult,
+  PublishSummary,
+  PublishMetrics,
+  ContentFormatting,
   PublishAgentConfig,
   PublishAgentInput,
   PublishAgentOutput
+} from './types/publish-agent';
+
+export {
+  PublishStatus
 } from './types/publish-agent';
 
 export {

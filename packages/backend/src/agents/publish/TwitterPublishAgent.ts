@@ -10,6 +10,7 @@ import {
   ContentFormatting
 } from '@multi-agent-platform/shared';
 import { PublishAgent } from './PublishAgent';
+import { getErrorMessage } from '../../utils/error-handler';
 import * as crypto from 'crypto';
 
 /**
@@ -160,7 +161,7 @@ export class TwitterPublishAgent extends PublishAgent {
         status: PublishStatus.FAILED,
         error: {
           code: this.getErrorCode(error),
-          message: error.message,
+          message: getErrorMessage(error),
           retryable: this.isRetryableError(error)
         }
       };
@@ -172,7 +173,7 @@ export class TwitterPublishAgent extends PublishAgent {
         targetId: target.id,
         platform: PublishPlatform.TWITTER,
         status: PublishStatus.FAILED,
-        error: error.message,
+        error: getErrorMessage(error),
         publishTime: Date.now() - startTime
       });
 
@@ -207,7 +208,7 @@ export class TwitterPublishAgent extends PublishAgent {
       // Test with a simple API call
       await this.verifyTwitterCredentials(target);
     } catch (error) {
-      throw new Error(`Cannot connect to Twitter for target ${target.name}: ${error.message}`);
+      throw new Error(`Cannot connect to Twitter for target ${target.name}: ${getErrorMessage(error)}`);
     }
   }
 
@@ -574,7 +575,7 @@ export class TwitterPublishAgent extends PublishAgent {
   /**
    * Generate unique publish ID
    */
-  private generatePublishId(): string {
+  protected generatePublishId(): string {
     return `twitter-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }

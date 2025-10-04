@@ -11,13 +11,14 @@ import {
 } from '@multi-agent-platform/shared';
 import { ProcessAgent } from './ProcessAgent';
 import * as crypto from 'crypto';
+import { getErrorMessage } from '../../utils/error-handler';
 
 /**
  * Content Generator Agent
  * Generates new content based on input data using AI and templates
  */
 export class ContentGeneratorAgent extends ProcessAgent {
-  private llmService: any = null;
+  protected llmService: any = null;
   private processingHistory: any[] = [];
   private contentTemplates: Map<string, string> = new Map();
 
@@ -159,7 +160,7 @@ export class ContentGeneratorAgent extends ProcessAgent {
         rulesApplied: appliedRules,
         qualityScore: 0,
         status: 'failed',
-        errorMessage: error.message
+        errorMessage: getErrorMessage(error)
       });
 
       throw error;
@@ -231,7 +232,7 @@ export class ContentGeneratorAgent extends ProcessAgent {
       // Test with a simple generation prompt
       await this.callLLMService('Generate a short test message.', { maxTokens: 20 });
     } catch (error) {
-      throw new Error(`LLM service connection failed: ${error.message}`);
+      throw new Error(`LLM service connection failed: ${getErrorMessage(error)}`);
     }
   }
 

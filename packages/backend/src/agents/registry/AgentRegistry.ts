@@ -1,6 +1,7 @@
 import { AgentCategory } from '@multi-agent-platform/shared';
 import { IAgent, IAgentRegistry } from '../base/IAgent';
 import { Logger } from '../../utils/logger';
+import { getErrorMessage } from '../../utils/error-handler';
 import { EventEmitter } from 'events';
 
 /**
@@ -172,7 +173,7 @@ export class AgentRegistry extends EventEmitter implements IAgentRegistry {
           agentId: agent.id,
           agentName: agent.name,
           healthy: false,
-          lastError: error.message
+          lastError: getErrorMessage(error)
         });
       }
     }

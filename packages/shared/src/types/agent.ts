@@ -97,6 +97,12 @@ export interface AgentConfig {
   schedule?: ScheduleConfig;
   resources: ResourceAllocation;
   settings: Record<string, any>;
+  // Work Agent特定配置
+  dataSources?: any[];
+  // Process Agent特定配置
+  processingRules?: any[];
+  // 其他可选配置
+  [key: string]: any;
 }
 
 // 调度配置

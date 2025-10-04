@@ -31,8 +31,16 @@ export interface DataSourceConfig {
     content?: string;
     links?: string;
     images?: string;
+    description?: string;
+    author?: string;
+    publishedAt?: string;
+    tags?: string;
     metadata?: Record<string, string>;
   };
+  customSelectors?: Record<string, string>;
+  userAgent?: string;
+  headers?: Record<string, string>;
+  minInterval?: number;
   
   // API配置
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE';
@@ -118,6 +126,9 @@ export interface CollectedMetadata {
   sentiment?: 'positive' | 'negative' | 'neutral';
   feedTitle?: string;
   description?: string;
+  guid?: string; // RSS feed item GUID
+  keywords?: string[]; // 关键词
+  [key: string]: any; // 允许自定义字段
 }
 
 // 媒体文件

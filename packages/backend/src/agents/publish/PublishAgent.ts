@@ -13,7 +13,8 @@ import {
   PublishStatus
 } from '@multi-agent-platform/shared';
 import { BaseAgent } from '../base/BaseAgent';
-import { IPublishAgent } from './IPublishAgent';
+import { IPublishAgent, PublishRecord } from './IPublishAgent';
+import { getErrorMessage } from '../../utils/error-handler';
 
 /**
  * Abstract base class for Publish Agents (content publishing and distribution)
@@ -79,7 +80,7 @@ export abstract class PublishAgent extends BaseAgent implements IPublishAgent {
   /**
    * Get publishing history
    */
-  async getPublishHistory(): Promise<any[]> {
+  async getPublishHistory(): Promise<PublishRecord[]> {
     return await this.doGetPublishHistory();
   }
 
@@ -120,7 +121,7 @@ export abstract class PublishAgent extends BaseAgent implements IPublishAgent {
           status: PublishStatus.FAILED,
           error: {
             code: 'PUBLISH_ERROR',
-            message: error.message,
+            message: getErrorMessage(error),
             retryable: true
           }
         };
@@ -222,7 +223,7 @@ export abstract class PublishAgent extends BaseAgent implements IPublishAgent {
   /**
    * Get publishing history
    */
-  protected abstract doGetPublishHistory(): Promise<any[]>;
+  protected abstract doGetPublishHistory(): Promise<PublishRecord[]>;
 
   /**
    * Test publish target connection
@@ -265,7 +266,7 @@ export abstract class PublishAgent extends BaseAgent implements IPublishAgent {
   /**
    * Generate unique publish ID
    */
-  private generatePublishId(): string {
+  protected generatePublishId(): string {
     return `pub-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 

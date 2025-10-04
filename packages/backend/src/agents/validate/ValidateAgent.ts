@@ -11,7 +11,7 @@ import {
   ValidationSummary
 } from '@multi-agent-platform/shared';
 import { BaseAgent } from '../base/BaseAgent';
-import { IValidateAgent } from './IValidateAgent';
+import { IValidateAgent, ValidationRecord, ValidationStats, ValidationTestResult } from './IValidateAgent';
 
 /**
  * Abstract base class for Validate Agents (validation and quality assurance)
@@ -79,8 +79,22 @@ export abstract class ValidateAgent extends BaseAgent implements IValidateAgent 
   /**
    * Get validation history
    */
-  async getValidationHistory(): Promise<any[]> {
+  async getValidationHistory(): Promise<ValidationRecord[]> {
     return await this.doGetValidationHistory();
+  }
+
+  /**
+   * Get validation statistics
+   */
+  async getValidationStats(): Promise<ValidationStats> {
+    return await this.doGetValidationStats();
+  }
+
+  /**
+   * Test validation rules with sample data
+   */
+  async testValidation(sampleData: any): Promise<ValidationTestResult> {
+    return await this.doTestValidation(sampleData);
   }
 
   /**
@@ -235,7 +249,17 @@ export abstract class ValidateAgent extends BaseAgent implements IValidateAgent 
   /**
    * Get validation history
    */
-  protected abstract doGetValidationHistory(): Promise<any[]>;
+  protected abstract doGetValidationHistory(): Promise<ValidationRecord[]>;
+
+  /**
+   * Get validation statistics
+   */
+  protected abstract doGetValidationStats(): Promise<ValidationStats>;
+
+  /**
+   * Test validation rules with sample data
+   */
+  protected abstract doTestValidation(sampleData: any): Promise<ValidationTestResult>;
 
   /**
    * Test connection to validation target

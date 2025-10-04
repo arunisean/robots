@@ -10,6 +10,7 @@ import {
 } from '@multi-agent-platform/shared';
 import { PublishAgent } from './PublishAgent';
 import * as crypto from 'crypto';
+import { getErrorMessage } from '../../utils/error-handler';
 
 /**
  * Website Publish Agent
@@ -150,7 +151,7 @@ export class WebsitePublishAgent extends PublishAgent {
         status: PublishStatus.FAILED,
         error: {
           code: this.getErrorCode(error),
-          message: error.message,
+          message: getErrorMessage(error),
           retryable: this.isRetryableError(error)
         }
       };
@@ -162,7 +163,7 @@ export class WebsitePublishAgent extends PublishAgent {
         targetId: target.id,
         platform: PublishPlatform.WEBSITE,
         status: PublishStatus.FAILED,
-        error: error.message,
+        error: getErrorMessage(error),
         publishTime: Date.now() - startTime
       });
 
@@ -203,7 +204,7 @@ export class WebsitePublishAgent extends PublishAgent {
       }
 
     } catch (error) {
-      throw new Error(`Cannot connect to website ${target.name}: ${error.message}`);
+      throw new Error(`Cannot connect to website ${target.name}: ${getErrorMessage(error)}`);
     }
   }
 
@@ -685,7 +686,7 @@ ${JSON.stringify(structuredData, null, 2)}
   /**
    * Generate unique publish ID
    */
-  private generatePublishId(): string {
+  protected generatePublishId(): string {
     return `website-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   }
 }

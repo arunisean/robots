@@ -3,6 +3,7 @@ import { AgentSandbox, ResourceUsage } from './AgentSandbox';
 import { IAgent } from '../base/IAgent';
 import { ResourceAllocation, ExecutionMetrics, AgentStatus } from '@multi-agent-platform/shared';
 import { Logger } from '../../utils/logger';
+import { getErrorMessage } from '../../utils/error-handler';
 import { MetricsCollector } from './MetricsCollector';
 import { LifecycleManager } from './LifecycleManager';
 
@@ -252,7 +253,7 @@ export class AgentRuntimeManager extends EventEmitter {
           agentId,
           agentName: agent.name,
           healthy: false,
-          error: error.message,
+          error: getErrorMessage(error),
           lastCheck: new Date()
         });
       }

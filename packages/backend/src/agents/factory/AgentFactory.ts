@@ -7,6 +7,7 @@ import { PublishAgent } from '../publish/PublishAgent';
 import { ValidateAgent } from '../validate/ValidateAgent';
 import { AgentRuntimeManager } from '../runtime/AgentRuntimeManager';
 import { Logger } from '../../utils/logger';
+import { getErrorMessage } from '../../utils/error-handler';
 
 /**
  * Factory for creating agent instances
@@ -163,7 +164,7 @@ export class AgentFactory extends EventEmitter implements IAgentFactory {
       } catch (error) {
         results.push({
           success: false,
-          error: error.message,
+          error: getErrorMessage(error),
           config: config.config
         });
       }
@@ -279,12 +280,7 @@ export class AgentFactory extends EventEmitter implements IAgentFactory {
 /**
  * Agent constructor type
  */
-type AgentConstructor = new (
-  id: string,
-  name: string,
-  version: string,
-  description: string
-) => IAgent;
+type AgentConstructor = new (id: string, name: string, version: string, description: string) => IAgent;
 
 /**
  * Agent creation configuration
@@ -405,6 +401,8 @@ class PerformanceMonitorAgent extends ValidateAgent {
   protected async doPerformValidation(): Promise<any> { return {}; }
   protected async doGenerateReport(): Promise<any> { return {}; }
   protected async doGetValidationHistory(): Promise<any[]> { return []; }
+  protected async doGetValidationStats(): Promise<any> { return { totalValidations: 0, averageScore: 0, averageValidationTime: 0, trendsIdentified: 0, recommendationsGenerated: 0, validationTypeStats: [], scoreDistribution: { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 } }; }
+  protected async doTestValidation(sampleData: any): Promise<any> { return { success: true, validationTime: 0, score: 100, findings: [], warnings: [], errors: [], rulesApplied: [] }; }
   protected async testTargetConnection(target: any): Promise<void> {}
   protected async doCleanup(): Promise<void> {}
   protected async doHealthCheck(): Promise<boolean> { return true; }
@@ -418,6 +416,8 @@ class QualityAssessorAgent extends ValidateAgent {
   protected async doPerformValidation(): Promise<any> { return {}; }
   protected async doGenerateReport(): Promise<any> { return {}; }
   protected async doGetValidationHistory(): Promise<any[]> { return []; }
+  protected async doGetValidationStats(): Promise<any> { return { totalValidations: 0, averageScore: 0, averageValidationTime: 0, trendsIdentified: 0, recommendationsGenerated: 0, validationTypeStats: [], scoreDistribution: { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 } }; }
+  protected async doTestValidation(sampleData: any): Promise<any> { return { success: true, validationTime: 0, score: 100, findings: [], warnings: [], errors: [], rulesApplied: [] }; }
   protected async testTargetConnection(target: any): Promise<void> {}
   protected async doCleanup(): Promise<void> {}
   protected async doHealthCheck(): Promise<boolean> { return true; }
@@ -431,6 +431,8 @@ class SecurityScannerAgent extends ValidateAgent {
   protected async doPerformValidation(): Promise<any> { return {}; }
   protected async doGenerateReport(): Promise<any> { return {}; }
   protected async doGetValidationHistory(): Promise<any[]> { return []; }
+  protected async doGetValidationStats(): Promise<any> { return { totalValidations: 0, averageScore: 0, averageValidationTime: 0, trendsIdentified: 0, recommendationsGenerated: 0, validationTypeStats: [], scoreDistribution: { excellent: 0, good: 0, fair: 0, poor: 0, critical: 0 } }; }
+  protected async doTestValidation(sampleData: any): Promise<any> { return { success: true, validationTime: 0, score: 100, findings: [], warnings: [], errors: [], rulesApplied: [] }; }
   protected async testTargetConnection(target: any): Promise<void> {}
   protected async doCleanup(): Promise<void> {}
   protected async doHealthCheck(): Promise<boolean> { return true; }

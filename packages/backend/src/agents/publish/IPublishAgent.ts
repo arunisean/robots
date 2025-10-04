@@ -29,12 +29,12 @@ export interface IPublishAgent extends IAgent {
   /**
    * Get publishing statistics
    */
-  getPublishStats(): Promise<PublishStats>;
+  getPublishStats?(): Promise<PublishStats>;
 
   /**
    * Test publishing to target platform
    */
-  testPublish(content: PublishContent): Promise<PublishTestResult>;
+  testPublish?(content: PublishContent): Promise<PublishTestResult>;
 }
 
 /**

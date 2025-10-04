@@ -30,21 +30,15 @@ async function registerPlugins() {
     secret: config.JWT_SECRET,
   });
 
-  // 数据库连接（开发模式下可选）
-  if (config.DATABASE_URL && config.DATABASE_URL !== 'sqlite:./dev.db') {
-    try {
-      const dbService = new DatabaseService();
-      await dbService.connect();
-      fastify.decorate('db', dbService);
-      logger.info('Database connected successfully');
-    } catch (error) {
-      logger.warn('Database connection failed, running without database:', error);
-      fastify.decorate('db', null);
-    }
-  } else {
-    logger.info('Running without database in development mode');
-    fastify.decorate('db', null);
+  // 数据库连接（必需）
+  if (!config.DATABASE_URL) {
+    throw new Error('DATABASE_URL is required');
   }
+
+  const dbService = new DatabaseService();
+  await dbService.connect();
+  fastify.decorate('db', dbService);
+  logger.info('Database connected successfully');
 
   // Redis连接（开发模式下可选）
   if (config.REDIS_URL) {
@@ -114,10 +108,5 @@ process.on('SIGTERM', async () => {
 // 启动应用
 start();
 
-// 类型声明
-declare module 'fastify' {
-  interface FastifyInstance {
-    db: DatabaseService | null;
-    redis: RedisService | null;
-  }
-}
+// 导入类型声明
+import './types/fastify';

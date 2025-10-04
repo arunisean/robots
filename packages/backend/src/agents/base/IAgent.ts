@@ -1,3 +1,4 @@
+import { EventEmitter } from 'events';
 import {
   AgentCategory,
   AgentConfig,
@@ -14,7 +15,7 @@ import {
  * Core interface that all agents must implement
  * Provides unified contract for agent lifecycle and execution
  */
-export interface IAgent {
+export interface IAgent extends EventEmitter {
   // Agent metadata
   readonly id: string;
   readonly name: string;
@@ -32,7 +33,7 @@ export interface IAgent {
   getMetrics(): AgentMetrics;
   
   // Configuration management
-  validateConfig(config: AgentConfig): ValidationResult;
+  validateConfig(config: AgentConfig): ConfigValidationResult;
   updateConfig(config: Partial<AgentConfig>): Promise<void>;
   
   // Resource management
@@ -141,6 +142,16 @@ export interface ResourceUsage {
   storageReads: number;
   storageWrites: number;
   storageBytes: number;
+}
+
+/**
+ * Simple configuration validation result
+ */
+export interface ConfigValidationResult {
+  success: boolean;
+  isValid: boolean;
+  errors?: string[];
+  warnings?: string[];
 }
 
 /**

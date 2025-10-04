@@ -12,7 +12,7 @@ import {
   LLMConfig
 } from '@multi-agent-platform/shared';
 import { BaseAgent } from '../base/BaseAgent';
-import { IProcessAgent } from './IProcessAgent';
+import { IProcessAgent, ProcessingRecord } from './IProcessAgent';
 
 /**
  * Abstract base class for Process Agents (data processing and transformation)
@@ -62,7 +62,7 @@ export abstract class ProcessAgent extends BaseAgent implements IProcessAgent {
   /**
    * Get processing history
    */
-  async getProcessingHistory(): Promise<any[]> {
+  async getProcessingHistory(): Promise<ProcessingRecord[]> {
     return await this.doGetProcessingHistory();
   }
 
@@ -203,7 +203,7 @@ export abstract class ProcessAgent extends BaseAgent implements IProcessAgent {
   /**
    * Get processing history
    */
-  protected abstract doGetProcessingHistory(): Promise<any[]>;
+  protected abstract doGetProcessingHistory(): Promise<ProcessingRecord[]>;
 
   /**
    * Test LLM service connection

@@ -1,7 +1,21 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool, PoolClient, QueryResult as PgQueryResult } from 'pg';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { MigrationManager } from '../database/MigrationManager';
+import {
+  User,
+  CreateUserData,
+  Agent,
+  CreateAgentData,
+  Workflow,
+  CreateWorkflowData,
+  ExecutionRecord,
+  CreateExecutionRecordData,
+  ExecutionRecordFilters,
+  Session,
+  CreateSessionData,
+  SessionWithUser
+} from '../types/fastify';
 
 export class DatabaseService {
   private pool: Pool;
@@ -47,7 +61,7 @@ export class DatabaseService {
     return this.migrationManager;
   }
 
-  async query(text: string, params?: any[]): Promise<any> {
+  async query<T extends Record<string, any> = any>(text: string, params?: any[]): Promise<PgQueryResult<T>> {
     const start = Date.now();
     try {
       const result = await this.pool.query(text, params);
@@ -85,20 +99,20 @@ export class DatabaseService {
   }
 
   // 用户相关查询
-  async createUser(walletAddress: string, preferences: any = {}, profile: any = {}): Promise<any> {
+  async createUser(walletAddress: string, preferences: any = {}, profile: any = {}): Promise<User> {
     const query = `
       INSERT INTO users (wallet_address, preferences, profile)
       VALUES ($1, $2, $3)
       RETURNING *
     `;
-    const result = await this.query(query, [walletAddress, preferences, profile]);
+    const result = await this.query<User>(query, [walletAddress, preferences, profile]);
     return result.rows[0];
   }
 
-  async getUserByWalletAddress(walletAddress: string): Promise<any> {
+  async getUserByWalletAddress(walletAddress: string): Promise<User | null> {
     const query = 'SELECT * FROM users WHERE wallet_address = $1';
-    const result = await this.query(query, [walletAddress]);
-    return result.rows[0];
+    const result = await this.query<User>(query, [walletAddress]);
+    return result.rows[0] || null;
   }
 
   async updateUser(id: string, updates: any): Promise<any> {

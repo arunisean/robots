@@ -1107,4 +1107,4 @@ ${this.getTemplatesForCategory(cat.category).map(t => `- **${t.name}** (${t.comp
   }
 }
 
-export { DocumentationGenerator };
+// DocumentationGenerator已经通过class声明导出
