@@ -18,7 +18,7 @@
     - Implement ResultRepository for agent results
     - _Requirements: 2.4, 4.5_
 
-- [ ] 3. Implement WorkflowService
+- [x] 3. Implement WorkflowService
   - [x] 3.1 Create WorkflowService class with CRUD operations
     - Implement createWorkflow, getWorkflow, updateWorkflow, deleteWorkflow
     - Implement listWorkflows with filtering
@@ -31,7 +31,7 @@
     - Validate agent connections and data flow compatibility
     - _Requirements: 2.3, 8.1_
 
-  - [ ] 3.3 Implement workflow execution orchestration
+  - [x] 3.3 Implement workflow execution orchestration
     - Create WorkflowExecutor class
     - Implement sequential agent execution logic
     - Handle data passing between agents
