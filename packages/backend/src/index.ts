@@ -5,9 +5,11 @@ import { config } from './config';
 import { authRoutes } from './routes/auth';
 import { agentRoutes } from './routes/agents';
 import { workflowRoutes } from './routes/workflows';
+import { executionRoutes } from './routes/executions';
 import { userRoutes } from './routes/users';
 import { DatabaseService } from './services/database';
 import { RedisService } from './services/redis';
+import { AgentFactory } from './agents/factory/AgentFactory';
 import { logger } from './utils/logger';
 
 // 创建Fastify实例
@@ -55,6 +57,11 @@ async function registerPlugins() {
     logger.info('Running without Redis in development mode');
     fastify.decorate('redis', null);
   }
+
+  // Initialize AgentFactory
+  const agentFactory = new AgentFactory();
+  fastify.decorate('agentFactory', agentFactory);
+  logger.info('AgentFactory initialized');
 }
 
 // 注册路由
@@ -63,6 +70,7 @@ async function registerRoutes() {
   await fastify.register(userRoutes, { prefix: '/api/users' });
   await fastify.register(agentRoutes, { prefix: '/api/agents' });
   await fastify.register(workflowRoutes, { prefix: '/api/workflows' });
+  await fastify.register(executionRoutes, { prefix: '/api/executions' });
 }
 
 // 健康检查

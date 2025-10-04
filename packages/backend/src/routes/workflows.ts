@@ -1,27 +1,26 @@
 import { FastifyPluginAsync } from 'fastify';
-import { WorkflowSchema } from '@multi-agent-platform/shared';
+import {
+  CreateWorkflowDto,
+  UpdateWorkflowDto,
+  WorkflowFilters,
+  ExecuteWorkflowDto,
+  WorkflowStatus
+} from '@multi-agent-platform/shared';
+import { WorkflowService } from '../services/WorkflowService';
+import { WorkflowValidator } from '../services/WorkflowValidator';
+import { WorkflowExecutor } from '../services/WorkflowExecutor';
 import { logger } from '../utils/logger';
-
-interface CreateWorkflowBody {
-  name: string;
-  description?: string;
-  version?: string;
-  definition: any;
-  settings?: any;
-  metadata?: any;
-}
-
-interface UpdateWorkflowBody {
-  name?: string;
-  description?: string;
-  status?: 'draft' | 'active' | 'paused' | 'archived' | 'error';
-  version?: string;
-  definition?: any;
-  settings?: any;
-  metadata?: any;
-}
+import { getErrorMessage } from '../utils/error-handler';
 
 export const workflowRoutes: FastifyPluginAsync = async (fastify) => {
+  // Initialize services
+  const workflowService = new WorkflowService(fastify.db.workflows);
+  const workflowValidator = new WorkflowValidator();
+  const workflowExecutor = new WorkflowExecutor(
+    fastify.db.executions,
+    fastify.agentFactory
+  );
+
   // Authentication middleware
   const authenticate = async (request: any, reply: any) => {
     try {
@@ -31,362 +30,156 @@ export const workflowRoutes: FastifyPluginAsync = async (fastify) => {
     }
   };
 
-  // Get all workflows for current user
+  /**
+   * List workflows
+   * GET /api/workflows
+   */
   fastify.get('/', { preHandler: authenticate }, async (request, reply) => {
     try {
-      const payload = request.user as any;
-      const { status } = request.query as any;
+      const user = request.user as any;
+      const query = request.query as any;
 
-      let workflows = await fastify.db.getWorkflowsByOwner(payload.userId);
+      const filters: WorkflowFilters = {
+        status: query.status,
+        category: query.category,
+        tags: query.tags ? (Array.isArray(query.tags) ? query.tags : [query.tags]) : undefined,
+        search: query.search,
+        limit: query.limit ? parseInt(query.limit) : 10,
+        offset: query.offset ? parseInt(query.offset) : 0,
+        sortBy: query.sortBy || 'createdAt',
+        sortOrder: query.sortOrder || 'desc'
+      };
 
-      // Apply status filter
-      if (status) {
-        workflows = workflows.filter(workflow => workflow.status === status);
-      }
-
-      // Get execution stats for each workflow
-      const workflowsWithStats = await Promise.all(
-        workflows.map(async (workflow) => {
-          const statsQuery = `
-            SELECT 
-              COUNT(*) as total_executions,
-              COUNT(CASE WHEN status = 'success' THEN 1 END) as successful_executions,
-              COUNT(CASE WHEN status = 'failed' THEN 1 END) as failed_executions,
-              AVG(duration) as avg_execution_time,
-              MAX(start_time) as last_executed
-            FROM execution_records
-            WHERE workflow_id = $1
-          `;
-          
-          const statsResult = await fastify.db.query(statsQuery, [workflow.id]);
-          const stats = statsResult.rows[0];
-
-          return {
-            ...workflow,
-            stats: {
-              totalExecutions: parseInt(stats.total_executions) || 0,
-              successfulExecutions: parseInt(stats.successful_executions) || 0,
-              failedExecutions: parseInt(stats.failed_executions) || 0,
-              avgExecutionTime: parseFloat(stats.avg_execution_time) || 0,
-              lastExecuted: stats.last_executed
-            }
-          };
-        })
-      );
+      const result = await workflowService.listWorkflows(user.userId, filters);
 
       return reply.send({
         success: true,
-        workflows: workflowsWithStats
+        data: result.workflows,
+        pagination: {
+          total: result.total,
+          page: result.page,
+          pageSize: result.pageSize,
+          totalPages: Math.ceil(result.total / result.pageSize)
+        }
       });
     } catch (error) {
-      logger.error('Error fetching workflows:', error);
+      logger.error('Error listing workflows:', error);
       return reply.status(500).send({
         success: false,
-        error: 'Internal server error'
+        error: getErrorMessage(error)
       });
     }
   });
 
-  // Get specific workflow by ID
+  /**
+   * Get workflow by ID
+   * GET /api/workflows/:id
+   */
   fastify.get('/:id', { preHandler: authenticate }, async (request, reply) => {
     try {
-      const payload = request.user as any;
+      const user = request.user as any;
       const { id } = request.params as any;
 
-      const workflow = await fastify.db.getWorkflowById(id);
-
-      if (!workflow) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Workflow not found'
-        });
-      }
-
-      // Check ownership
-      if (workflow.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Get execution history
-      const executionHistory = await fastify.db.getExecutionRecords({
-        workflowId: id,
-        limit: 20
-      });
+      const workflow = await workflowService.getWorkflow(id, user.userId);
 
       return reply.send({
         success: true,
-        workflow: {
-          ...workflow,
-          executionHistory
-        }
+        data: workflow
       });
     } catch (error) {
-      logger.error('Error fetching workflow:', error);
-      return reply.status(500).send({
+      logger.error('Error getting workflow:', error);
+      const errorMsg = getErrorMessage(error);
+      const status = errorMsg.includes('not found') ? 404 : 
+                     errorMsg.includes('Access denied') ? 403 : 500;
+      return reply.status(status).send({
         success: false,
-        error: 'Internal server error'
+        error: errorMsg
       });
     }
   });
 
-  // Create new workflow
-  fastify.post<{ Body: CreateWorkflowBody }>('/', { preHandler: authenticate }, async (request, reply) => {
-    try {
-      const payload = request.user as any;
-      const { 
-        name, 
-        description, 
-        version = '1.0.0', 
-        definition, 
-        settings = {}, 
-        metadata = {} 
-      } = request.body;
+  /**
+   * Create workflow
+   * POST /api/workflows
+   */
+  fastify.post<{ Body: CreateWorkflowDto }>(
+    '/',
+    { preHandler: authenticate },
+    async (request, reply) => {
+      try {
+        const user = request.user as any;
+        const workflowData = request.body;
 
-      // Validate required fields
-      if (!name || !definition) {
-        return reply.status(400).send({
-          success: false,
-          error: 'Missing required fields: name, definition'
-        });
-      }
-
-      // Basic validation of workflow definition
-      if (!definition.nodes || !Array.isArray(definition.nodes)) {
-        return reply.status(400).send({
-          success: false,
-          error: 'Workflow definition must contain nodes array'
-        });
-      }
-
-      // Set default settings if not provided
-      const defaultSettings = {
-        maxConcurrentExecutions: 1,
-        executionTimeout: 1800, // 30 minutes
-        retryPolicy: {
-          enabled: true,
-          maxRetries: 3,
-          backoffStrategy: 'exponential',
-          backoffMs: 1000
-        },
-        errorHandling: {
-          strategy: 'stop',
-          notifyOnError: true
-        },
-        logging: {
-          level: 'info',
-          retention: 30,
-          includeData: false
-        }
-      };
-
-      const workflowData = {
-        name,
-        description: description || '',
-        version,
-        definition,
-        settings: { ...defaultSettings, ...settings },
-        metadata: {
-          ...metadata,
-          tags: metadata.tags || [],
-          category: metadata.category || 'general',
-          author: payload.walletAddress,
-          changelog: [{
-            version,
-            date: new Date(),
-            changes: ['Initial version'],
-            author: payload.walletAddress
-          }],
-          stats: {
-            totalExecutions: 0,
-            successfulExecutions: 0,
-            failedExecutions: 0,
-            averageExecutionTime: 0,
-            popularity: 0,
-            rating: 0
-          }
-        },
-        ownerId: payload.userId
-      };
-
-      const workflow = await fastify.db.createWorkflow(workflowData);
-
-      // Log user activity
-      await fastify.db.query(
-        'INSERT INTO user_activities (user_id, type, description, metadata, ip_address) VALUES ($1, $2, $3, $4, $5)',
-        [
-          payload.userId,
-          'workflow_created',
-          `Created workflow: ${name}`,
-          { workflowId: workflow.id, nodeCount: definition.nodes.length },
-          request.ip
-        ]
-      );
-
-      logger.info(`Workflow created: ${workflow.id} by user ${payload.walletAddress}`);
-
-      return reply.status(201).send({
-        success: true,
-        workflow
-      });
-    } catch (error) {
-      logger.error('Error creating workflow:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Internal server error'
-      });
-    }
-  });
-
-  // Update workflow
-  fastify.put<{ Body: UpdateWorkflowBody }>('/:id', { preHandler: authenticate }, async (request, reply) => {
-    try {
-      const payload = request.user as any;
-      const { id } = request.params as any;
-      const updates = request.body;
-
-      // Check if workflow exists and user owns it
-      const existingWorkflow = await fastify.db.getWorkflowById(id);
-      if (!existingWorkflow) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Workflow not found'
-        });
-      }
-
-      if (existingWorkflow.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Validate status if provided
-      if (updates.status) {
-        const validStatuses = ['draft', 'active', 'paused', 'archived', 'error'];
-        if (!validStatuses.includes(updates.status)) {
+        // Validate required fields
+        if (!workflowData.name || !workflowData.definition) {
           return reply.status(400).send({
             success: false,
-            error: 'Invalid status'
+            error: 'Missing required fields: name, definition'
           });
         }
+
+        // Create workflow
+        const workflow = await workflowService.createWorkflow(workflowData, user.userId);
+
+        return reply.status(201).send({
+          success: true,
+          data: workflow
+        });
+      } catch (error) {
+        logger.error('Error creating workflow:', error);
+        const errorMsg = getErrorMessage(error);
+        const status = errorMsg.includes('validation failed') ? 400 : 500;
+        return reply.status(status).send({
+          success: false,
+          error: errorMsg
+        });
       }
-
-      // If updating definition, validate it
-      if (updates.definition) {
-        if (!updates.definition.nodes || !Array.isArray(updates.definition.nodes)) {
-          return reply.status(400).send({
-            success: false,
-            error: 'Workflow definition must contain nodes array'
-          });
-        }
-      }
-
-      // Update version if definition changed
-      if (updates.definition && !updates.version) {
-        const currentVersion = existingWorkflow.version.split('.');
-        const patch = parseInt(currentVersion[2]) + 1;
-        updates.version = `${currentVersion[0]}.${currentVersion[1]}.${patch}`;
-      }
-
-      const updatedWorkflow = await fastify.db.query(
-        `UPDATE workflows 
-         SET name = COALESCE($2, name),
-             description = COALESCE($3, description),
-             version = COALESCE($4, version),
-             status = COALESCE($5, status),
-             definition = COALESCE($6, definition),
-             settings = COALESCE($7, settings),
-             metadata = COALESCE($8, metadata),
-             updated_at = NOW()
-         WHERE id = $1
-         RETURNING *`,
-        [
-          id,
-          updates.name,
-          updates.description,
-          updates.version,
-          updates.status,
-          updates.definition ? JSON.stringify(updates.definition) : null,
-          updates.settings ? JSON.stringify(updates.settings) : null,
-          updates.metadata ? JSON.stringify(updates.metadata) : null
-        ]
-      );
-
-      // Log user activity
-      await fastify.db.query(
-        'INSERT INTO user_activities (user_id, type, description, metadata, ip_address) VALUES ($1, $2, $3, $4, $5)',
-        [
-          payload.userId,
-          'workflow_updated',
-          `Updated workflow: ${existingWorkflow.name}`,
-          { workflowId: id, updates: Object.keys(updates) },
-          request.ip
-        ]
-      );
-
-      logger.info(`Workflow updated: ${id} by user ${payload.walletAddress}`);
-
-      return reply.send({
-        success: true,
-        workflow: updatedWorkflow.rows[0]
-      });
-    } catch (error) {
-      logger.error('Error updating workflow:', error);
-      return reply.status(500).send({
-        success: false,
-        error: 'Internal server error'
-      });
     }
-  });
+  );
 
-  // Delete workflow
+  /**
+   * Update workflow
+   * PUT /api/workflows/:id
+   */
+  fastify.put<{ Body: UpdateWorkflowDto }>(
+    '/:id',
+    { preHandler: authenticate },
+    async (request, reply) => {
+      try {
+        const user = request.user as any;
+        const { id } = request.params as any;
+        const updates = request.body;
+
+        const workflow = await workflowService.updateWorkflow(id, updates, user.userId);
+
+        return reply.send({
+          success: true,
+          data: workflow
+        });
+      } catch (error) {
+        logger.error('Error updating workflow:', error);
+        const errorMsg = getErrorMessage(error);
+        const status = errorMsg.includes('not found') ? 404 :
+                       errorMsg.includes('Access denied') ? 403 :
+                       errorMsg.includes('validation failed') ? 400 : 500;
+        return reply.status(status).send({
+          success: false,
+          error: errorMsg
+        });
+      }
+    }
+  );
+
+  /**
+   * Delete workflow
+   * DELETE /api/workflows/:id
+   */
   fastify.delete('/:id', { preHandler: authenticate }, async (request, reply) => {
     try {
-      const payload = request.user as any;
+      const user = request.user as any;
       const { id } = request.params as any;
 
-      // Check if workflow exists and user owns it
-      const existingWorkflow = await fastify.db.getWorkflowById(id);
-      if (!existingWorkflow) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Workflow not found'
-        });
-      }
-
-      if (existingWorkflow.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Check if workflow is currently active
-      if (existingWorkflow.status === 'active') {
-        return reply.status(400).send({
-          success: false,
-          error: 'Cannot delete active workflow. Please pause it first.'
-        });
-      }
-
-      await fastify.db.query('DELETE FROM workflows WHERE id = $1', [id]);
-
-      // Log user activity
-      await fastify.db.query(
-        'INSERT INTO user_activities (user_id, type, description, metadata, ip_address) VALUES ($1, $2, $3, $4, $5)',
-        [
-          payload.userId,
-          'workflow_deleted',
-          `Deleted workflow: ${existingWorkflow.name}`,
-          { workflowId: id },
-          request.ip
-        ]
-      );
-
-      logger.info(`Workflow deleted: ${id} by user ${payload.walletAddress}`);
+      await workflowService.deleteWorkflow(id, user.userId);
 
       return reply.send({
         success: true,
@@ -394,105 +187,239 @@ export const workflowRoutes: FastifyPluginAsync = async (fastify) => {
       });
     } catch (error) {
       logger.error('Error deleting workflow:', error);
-      return reply.status(500).send({
+      const errorMsg = getErrorMessage(error);
+      const status = errorMsg.includes('not found') ? 404 :
+                     errorMsg.includes('Access denied') ? 403 :
+                     errorMsg.includes('Cannot delete') ? 400 : 500;
+      return reply.status(status).send({
         success: false,
-        error: 'Internal server error'
+        error: errorMsg
       });
     }
   });
 
-  // Execute workflow
-  fastify.post('/:id/execute', { preHandler: authenticate }, async (request, reply) => {
+  /**
+   * Update workflow status
+   * PATCH /api/workflows/:id/status
+   */
+  fastify.patch<{ Body: { status: WorkflowStatus } }>(
+    '/:id/status',
+    { preHandler: authenticate },
+    async (request, reply) => {
+      try {
+        const user = request.user as any;
+        const { id } = request.params as any;
+        const { status } = request.body;
+
+        if (!status) {
+          return reply.status(400).send({
+            success: false,
+            error: 'Status is required'
+          });
+        }
+
+        const workflow = await workflowService.updateWorkflowStatus(id, status, user.userId);
+
+        return reply.send({
+          success: true,
+          data: workflow
+        });
+      } catch (error) {
+        logger.error('Error updating workflow status:', error);
+        const errorMsg = getErrorMessage(error);
+        const status = errorMsg.includes('not found') ? 404 :
+                       errorMsg.includes('Access denied') ? 403 :
+                       errorMsg.includes('Invalid status') ? 400 : 500;
+        return reply.status(status).send({
+          success: false,
+          error: errorMsg
+        });
+      }
+    }
+  );
+
+  /**
+   * Get workflow statistics
+   * GET /api/workflows/:id/stats
+   */
+  fastify.get('/:id/stats', { preHandler: authenticate }, async (request, reply) => {
     try {
-      const payload = request.user as any;
+      const user = request.user as any;
       const { id } = request.params as any;
-      const { input } = request.body as any;
 
-      // Check if workflow exists and user owns it
-      const workflow = await fastify.db.getWorkflowById(id);
-      if (!workflow) {
-        return reply.status(404).send({
-          success: false,
-          error: 'Workflow not found'
-        });
-      }
-
-      if (workflow.owner_id !== payload.userId) {
-        return reply.status(403).send({
-          success: false,
-          error: 'Access denied'
-        });
-      }
-
-      // Check if workflow is active
-      if (workflow.status !== 'active') {
-        return reply.status(400).send({
-          success: false,
-          error: 'Workflow must be active to execute'
-        });
-      }
-
-      // Create execution record
-      const executionRecord = await fastify.db.createExecutionRecord({
-        workflowId: id,
-        agentId: null, // This will be set when individual agents execute
-        status: 'pending',
-        startTime: new Date(),
-        inputData: input || {},
-        metrics: {}
-      });
-
-      // TODO: Implement actual workflow execution logic
-      // For now, just return the execution ID
-      
-      logger.info(`Workflow execution started: ${executionRecord.id} for workflow ${id}`);
+      const stats = await workflowService.getWorkflowStats(id, user.userId);
 
       return reply.send({
         success: true,
-        executionId: executionRecord.id,
-        status: 'pending',
-        message: 'Workflow execution started'
+        data: stats
       });
     } catch (error) {
-      logger.error('Error executing workflow:', error);
-      return reply.status(500).send({
+      logger.error('Error getting workflow stats:', error);
+      const errorMsg = getErrorMessage(error);
+      const status = errorMsg.includes('not found') ? 404 :
+                     errorMsg.includes('Access denied') ? 403 : 500;
+      return reply.status(status).send({
         success: false,
-        error: 'Internal server error'
+        error: errorMsg
       });
     }
   });
 
-  // Get workflow templates
-  fastify.get('/templates', async (request, reply) => {
+  /**
+   * Duplicate workflow
+   * POST /api/workflows/:id/duplicate
+   */
+  fastify.post('/:id/duplicate', { preHandler: authenticate }, async (request, reply) => {
     try {
-      const { category, difficulty } = request.query as any;
+      const user = request.user as any;
+      const { id } = request.params as any;
 
-      let query = 'SELECT * FROM workflow_templates WHERE 1=1';
-      const params: any[] = [];
+      const duplicate = await workflowService.duplicateWorkflow(id, user.userId);
 
-      if (category) {
-        query += ` AND category = $${params.length + 1}`;
-        params.push(category);
+      return reply.status(201).send({
+        success: true,
+        data: duplicate
+      });
+    } catch (error) {
+      logger.error('Error duplicating workflow:', error);
+      const errorMsg = getErrorMessage(error);
+      const status = errorMsg.includes('not found') ? 404 :
+                     errorMsg.includes('Access denied') ? 403 : 500;
+      return reply.status(status).send({
+        success: false,
+        error: errorMsg
+      });
+    }
+  });
+
+  /**
+   * Validate workflow definition
+   * POST /api/workflows/validate
+   */
+  fastify.post<{ Body: { definition: any } }>(
+    '/validate',
+    { preHandler: authenticate },
+    async (request, reply) => {
+      try {
+        const { definition } = request.body;
+
+        if (!definition) {
+          return reply.status(400).send({
+            success: false,
+            error: 'Definition is required'
+          });
+        }
+
+        const validation = workflowValidator.validate(definition);
+
+        return reply.send({
+          success: true,
+          data: validation
+        });
+      } catch (error) {
+        logger.error('Error validating workflow:', error);
+        return reply.status(500).send({
+          success: false,
+          error: getErrorMessage(error)
+        });
       }
+    }
+  );
 
-      if (difficulty) {
-        query += ` AND difficulty = $${params.length + 1}`;
-        params.push(difficulty);
+  /**
+   * Execute workflow
+   * POST /api/workflows/:id/execute
+   */
+  fastify.post<{ Body: ExecuteWorkflowDto }>(
+    '/:id/execute',
+    { preHandler: authenticate },
+    async (request, reply) => {
+      try {
+        const user = request.user as any;
+        const { id } = request.params as any;
+        const options = request.body || {};
+
+        // Get workflow
+        const workflow = await workflowService.getWorkflow(id, user.userId);
+
+        // Check if workflow is active
+        if (workflow.status !== 'active' && !options.inputData?.force) {
+          return reply.status(400).send({
+            success: false,
+            error: 'Workflow must be active to execute. Set status to active first.'
+          });
+        }
+
+        // Execute workflow
+        const execution = await workflowExecutor.executeWorkflow(
+          workflow,
+          {
+            dryRun: options.inputData?.dryRun,
+            skipValidation: options.inputData?.skipValidation
+          },
+          user.userId
+        );
+
+        return reply.status(202).send({
+          success: true,
+          data: execution,
+          message: 'Workflow execution started'
+        });
+      } catch (error) {
+        logger.error('Error executing workflow:', error);
+        const errorMsg = getErrorMessage(error);
+        const status = errorMsg.includes('not found') ? 404 :
+                       errorMsg.includes('Access denied') ? 403 :
+                       errorMsg.includes('must be active') ? 400 : 500;
+        return reply.status(status).send({
+          success: false,
+          error: errorMsg
+        });
       }
+    }
+  );
 
-      query += ' ORDER BY downloads DESC, rating DESC';
+  /**
+   * Get workflow execution history
+   * GET /api/workflows/:id/executions
+   */
+  fastify.get('/:id/executions', { preHandler: authenticate }, async (request, reply) => {
+    try {
+      const user = request.user as any;
+      const { id } = request.params as any;
+      const query = request.query as any;
 
-      const result = await fastify.db.query(query, params);
+      // Check ownership
+      await workflowService.getWorkflow(id, user.userId);
+
+      // Get executions
+      const executions = await fastify.db.executions.findByWorkflowId(id, {
+        status: query.status,
+        limit: query.limit ? parseInt(query.limit) : 20,
+        offset: query.offset ? parseInt(query.offset) : 0
+      });
+
+      const total = await fastify.db.executions.countByWorkflowId(id, {
+        status: query.status
+      });
 
       return reply.send({
         success: true,
-        templates: result.rows
+        data: executions,
+        pagination: {
+          total,
+          limit: query.limit ? parseInt(query.limit) : 20,
+          offset: query.offset ? parseInt(query.offset) : 0
+        }
       });
     } catch (error) {
-      logger.error('Error fetching workflow templates:', error);
-      return reply.status(500).send({
+      logger.error('Error getting execution history:', error);
+      const errorMsg = getErrorMessage(error);
+      const status = errorMsg.includes('not found') ? 404 :
+                     errorMsg.includes('Access denied') ? 403 : 500;
+      return reply.status(status).send({
         success: false,
-        error: 'Internal server error'
+        error: errorMsg
       });
     }
   });

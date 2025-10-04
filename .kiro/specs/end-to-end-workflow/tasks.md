@@ -77,7 +77,7 @@
     - _Requirements: 5.1, 5.2, 5.3_
 
 - [ ] 6. Create API endpoints for workflow management
-  - [ ] 6.1 Implement workflow CRUD endpoints
+  - [x] 6.1 Implement workflow CRUD endpoints
     - POST /api/workflows - Create workflow
     - GET /api/workflows - List workflows
     - GET /api/workflows/:id - Get workflow details
@@ -85,7 +85,7 @@
     - DELETE /api/workflows/:id - Delete workflow
     - _Requirements: 12.1, 12.2_
 
-  - [ ] 6.2 Implement workflow execution endpoints
+  - [x] 6.2 Implement workflow execution endpoints
     - POST /api/workflows/:id/execute - Start execution
     - POST /api/workflows/:id/cancel - Cancel execution
     - GET /api/workflows/:id/executions - Get execution history

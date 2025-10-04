@@ -1,10 +1,12 @@
 import { DatabaseService } from '../services/database';
 import { RedisService } from '../services/redis';
+import { AgentFactory } from '../agents/factory/AgentFactory';
 
 declare module 'fastify' {
   interface FastifyInstance {
     db: DatabaseService;
     redis: RedisService | null;
+    agentFactory: AgentFactory;
   }
 }
 
