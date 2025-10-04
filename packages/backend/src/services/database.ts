@@ -2,6 +2,7 @@ import { Pool, PoolClient, QueryResult as PgQueryResult } from 'pg';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { MigrationManager } from '../database/MigrationManager';
+import { WorkflowRepository, ExecutionRepository } from '../database/repositories';
 import {
   User,
   CreateUserData,
@@ -20,6 +21,8 @@ import {
 export class DatabaseService {
   private pool: Pool;
   private migrationManager: MigrationManager;
+  public workflows: WorkflowRepository;
+  public executions: ExecutionRepository;
 
   constructor() {
     this.pool = new Pool({
@@ -30,6 +33,10 @@ export class DatabaseService {
     });
 
     this.migrationManager = new MigrationManager(this.pool);
+    
+    // Initialize repositories
+    this.workflows = new WorkflowRepository(this.pool);
+    this.executions = new ExecutionRepository(this.pool);
 
     // 监听连接事件
     this.pool.on('connect', () => {

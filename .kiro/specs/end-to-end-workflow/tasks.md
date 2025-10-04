@@ -6,13 +6,13 @@
   - Create seed data for example workflows
   - _Requirements: 1.3, 12.1_
 
-- [ ] 2. Implement Workflow data models and types
+- [x] 2. Implement Workflow data models and types
   - [x] 2.1 Create Workflow, WorkflowAgent, and WorkflowExecution types in shared package
     - Define TypeScript interfaces for all workflow-related data structures
     - Export types from shared package for use in backend and frontend
     - _Requirements: 2.4, 8.1_
 
-  - [ ] 2.2 Create database models and repositories
+  - [x] 2.2 Create database models and repositories
     - Implement WorkflowRepository with CRUD operations
     - Implement ExecutionRepository for execution history
     - Implement ResultRepository for agent results
