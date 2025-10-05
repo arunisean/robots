@@ -60,15 +60,29 @@ async function registerPlugins() {
   // Redis连接（开发模式下可选）
   if (config.REDIS_URL) {
     try {
+      console.log('🔄 Attempting to connect to Redis:', config.REDIS_URL);
       const redisService = new RedisService();
       await redisService.connect();
-      fastify.decorate('redis', redisService);
-      logger.info('Redis connected successfully');
+      
+      // Test Redis connection immediately
+      await redisService.set('startup-test', 'test-value', 10);
+      const testValue = await redisService.get('startup-test');
+      await redisService.del('startup-test');
+      
+      if (testValue === 'test-value') {
+        fastify.decorate('redis', redisService);
+        console.log('✅ Redis connected and tested successfully');
+        logger.info('Redis connected successfully');
+      } else {
+        throw new Error('Redis connection test failed');
+      }
     } catch (error) {
+      console.error('❌ Redis connection failed:', error);
       logger.warn('Redis connection failed, running without cache:', error);
       fastify.decorate('redis', null);
     }
   } else {
+    console.log('ℹ️  No REDIS_URL provided, running without Redis');
     logger.info('Running without Redis in development mode');
     fastify.decorate('redis', null);
   }
@@ -96,6 +110,45 @@ fastify.get('/health', async (request, reply) => {
     status: 'ok', 
     timestamp: new Date().toISOString(),
     version: process.env.npm_package_version || '1.0.0'
+  };
+});
+
+// Redis连接状态检查
+fastify.get('/debug/redis', async (request, reply) => {
+  const redisConnected = !!fastify.redis;
+  let redisStatus = 'disconnected';
+  let testResult = null;
+  
+  if (fastify.redis) {
+    try {
+      // Test Redis connection
+      await fastify.redis.set('debug-test', 'test-value', 10);
+      const value = await fastify.redis.get('debug-test');
+      await fastify.redis.del('debug-test');
+      
+      redisStatus = 'connected';
+      testResult = {
+        setSuccess: true,
+        getValue: value,
+        deleteSuccess: true
+      };
+    } catch (error) {
+      redisStatus = 'error';
+      testResult = {
+        error: error.message
+      };
+    }
+  }
+  
+  return {
+    redis: {
+      connected: redisConnected,
+      status: redisStatus,
+      test: testResult
+    },
+    config: {
+      redisUrl: config.REDIS_URL
+    }
   };
 });
 

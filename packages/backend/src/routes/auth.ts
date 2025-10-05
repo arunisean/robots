@@ -47,8 +47,25 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       // 将nonce存储到Redis，设置5分钟过期
       const nonceKey = `nonce:${walletAddress}`;
+      console.log('🔄 Attempting to store nonce in Redis');
+      console.log('- Redis service available:', !!fastify.redis);
+      console.log('- Nonce key:', nonceKey);
+      console.log('- Nonce value:', nonce);
+      
       if (fastify.redis) {
-        await fastify.redis.set(nonceKey, nonce, 300);
+        try {
+          await fastify.redis.set(nonceKey, nonce, 300);
+          console.log('✅ Nonce stored successfully in Redis');
+          
+          // Verify storage immediately
+          const verifyNonce = await fastify.redis.get(nonceKey);
+          console.log('✅ Nonce verification:', verifyNonce === nonce ? 'SUCCESS' : 'FAILED');
+          console.log('- Stored value:', verifyNonce);
+        } catch (error) {
+          console.error('❌ Failed to store nonce in Redis:', error);
+        }
+      } else {
+        console.log('⚠️  Redis not available, nonce not stored');
       }
 
       logger.info(`Generated nonce for wallet: ${walletAddress}`);
