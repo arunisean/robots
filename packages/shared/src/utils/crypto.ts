@@ -60,9 +60,13 @@ export const verifyEthereumSignature = (
     return addressesMatch;
   } catch (error) {
     console.error('ethers.verifyMessage Exception:');
-    console.error('- Error Type:', error.constructor.name);
-    console.error('- Error Message:', error.message);
-    console.error('- Error Stack:', error.stack);
+    if (error instanceof Error) {
+      console.error('- Error Type:', error.constructor.name);
+      console.error('- Error Message:', error.message);
+      console.error('- Error Stack:', error.stack);
+    } else {
+      console.error('- Unknown Error:', error);
+    }
     console.error('- This suggests signature format or message encoding issues');
     return false;
   }
