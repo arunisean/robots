@@ -28,11 +28,42 @@ export const verifyEthereumSignature = (
   signature: string,
   expectedAddress: string
 ): boolean => {
+  console.log('\n--- ethers.verifyMessage Execution ---');
+  console.log('Input Parameters:');
+  console.log('- Message:', JSON.stringify(message));
+  console.log('- Message Length:', message.length);
+  console.log('- Signature:', signature);
+  console.log('- Signature Length:', signature.length);
+  console.log('- Expected Address:', expectedAddress);
+  console.log('- Expected Address Length:', expectedAddress.length);
+  
   try {
+    console.log('Calling ethers.verifyMessage...');
     const recoveredAddress = ethers.verifyMessage(message, signature);
-    return recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+    
+    console.log('ethers.verifyMessage Results:');
+    console.log('- Recovered Address:', recoveredAddress);
+    console.log('- Recovered Address Length:', recoveredAddress.length);
+    console.log('- Expected Address (lowercase):', expectedAddress.toLowerCase());
+    console.log('- Recovered Address (lowercase):', recoveredAddress.toLowerCase());
+    
+    const addressesMatch = recoveredAddress.toLowerCase() === expectedAddress.toLowerCase();
+    console.log('- Addresses Match:', addressesMatch);
+    
+    if (!addressesMatch) {
+      console.error('Address Mismatch Details:');
+      console.error('- Expected:', expectedAddress.toLowerCase());
+      console.error('- Recovered:', recoveredAddress.toLowerCase());
+      console.error('- Length Difference:', expectedAddress.length - recoveredAddress.length);
+    }
+    
+    return addressesMatch;
   } catch (error) {
-    console.error('Signature verification failed:', error);
+    console.error('ethers.verifyMessage Exception:');
+    console.error('- Error Type:', error.constructor.name);
+    console.error('- Error Message:', error.message);
+    console.error('- Error Stack:', error.stack);
+    console.error('- This suggests signature format or message encoding issues');
     return false;
   }
 };

@@ -1,216 +1,256 @@
-# Web3钱包认证系统设计文档
+# Web3签名验证修复设计文档
 
 ## 概述
 
-Web3钱包认证系统旨在为多Agent自动化平台提供去中心化的身份认证解决方案。系统基于以太坊钱包签名机制，实现无密码登录，支持前端网页、Chrome插件的统一认证体验。
+本设计文档专注于修复Web3钱包认证系统中的签名验证失败问题。当前系统在用户尝试登录时出现"签名验证失败"错误，主要原因是前端使用personal_sign方法与后端ethers.verifyMessage方法之间的兼容性问题。需要确保消息格式一致性、签名验证逻辑正确性，并添加详细的调试信息。
 
 ## 架构
 
-### 系统架构图
+### 签名验证流程架构
 
 ```mermaid
 graph TB
-    subgraph "前端层"
-        A[Next.js Web App] --> B[WalletConnect Hook]
-        C[Chrome Extension] --> D[Extension Wallet Service]
-        B --> E[Auth Service]
-        D --> E
+    subgraph "前端签名流程"
+        A[用户点击登录] --> B[获取钱包地址]
+        B --> C[请求nonce]
+        C --> D[生成签名消息]
+        D --> E[调用personal_sign]
+        E --> F[获取签名结果]
     end
     
-    subgraph "认证服务层"
-        E --> F[Token Manager]
-        E --> G[Signature Verifier]
-        F --> H[Local Storage]
-        G --> I[Ethers.js]
+    subgraph "后端验证流程"
+        G[接收登录请求] --> H[验证nonce存在]
+        H --> I[验证消息格式]
+        I --> J[使用ethers.verifyMessage]
+        J --> K[比较恢复地址]
+        K --> L[生成JWT token]
     end
     
-    subgraph "后端API层"
-        J[Auth Routes] --> K[Nonce Generator]
-        J --> L[JWT Service]
-        J --> M[User Service]
+    subgraph "调试和日志"
+        M[记录原始消息] --> N[记录签名数据]
+        N --> O[记录恢复地址]
+        O --> P[记录验证结果]
     end
     
-    subgraph "存储层"
-        N[Redis Cache] --> O[Nonce Storage]
-        P[PostgreSQL] --> Q[User Data]
-        P --> R[Session Data]
-    end
-    
-    subgraph "Web3层"
-        S[MetaMask] --> T[Ethereum Provider]
-        U[WalletConnect] --> T
-        V[Coinbase Wallet] --> T
-    end
-    
-    E --> J
-    K --> N
-    L --> P
-    M --> P
-    B --> S
-    D --> S
+    F --> G
+    J --> M
+    L --> Q[返回认证结果]
 ```
 
-### 认证流程图
+### 签名验证详细流程
 
 ```mermaid
 sequenceDiagram
-    participant U as User
     participant F as Frontend
     participant W as Wallet
     participant B as Backend
     participant R as Redis
-    participant D as Database
     
-    U->>F: 点击连接钱包
-    F->>W: 检测钱包可用性
-    W-->>F: 返回钱包信息
-    F->>W: 请求连接钱包
-    W->>U: 显示连接确认
-    U->>W: 确认连接
-    W-->>F: 返回钱包地址
+    Note over F,R: 问题诊断和修复流程
     
-    F->>B: 请求nonce (POST /auth/nonce)
-    B->>R: 生成并存储nonce
-    B-->>F: 返回nonce和消息
+    F->>B: 请求nonce
+    B->>R: 生成nonce
+    B->>B: 使用createSignMessage生成消息
+    B-->>F: 返回{nonce, message}
     
-    F->>W: 请求签名消息
-    W->>U: 显示签名确认
-    U->>W: 确认签名
-    W-->>F: 返回签名
+    Note over F,W: 前端签名过程
+    F->>F: 记录消息内容和格式
+    F->>W: personal_sign(message, address)
+    W-->>F: 返回signature
+    F->>F: 记录签名结果
     
-    F->>B: 提交认证 (POST /auth/login)
-    B->>R: 验证nonce
-    B->>B: 验证签名
-    B->>D: 查找/创建用户
-    B->>D: 创建会话
-    B-->>F: 返回JWT token
+    Note over F,B: 后端验证过程
+    F->>B: 提交{walletAddress, signature, message}
+    B->>B: 记录接收到的数据
+    B->>R: 验证nonce是否存在
+    B->>B: 验证消息格式是否匹配
+    B->>B: ethers.verifyMessage(message, signature)
+    B->>B: 比较恢复地址与预期地址
     
-    F->>F: 存储token
-    F->>U: 跳转到仪表板
+    alt 验证成功
+        B->>B: 生成JWT token
+        B-->>F: 返回{success: true, token, user}
+    else 验证失败
+        B->>B: 记录详细错误信息
+        B-->>F: 返回{success: false, error: "详细错误"}
+    end
 ```
 
 ## 组件和接口
 
-### 前端组件架构
+### 签名验证核心接口
 
-#### 1. WalletConnect Hook
+#### 1. 消息格式标准化
 ```typescript
-interface UseWalletConnect {
-  // 状态
-  isConnected: boolean;
-  isConnecting: boolean;
-  walletAddress: string | null;
-  chainId: number | null;
-  error: string | null;
+interface SignatureMessage {
+  // 标准化的消息生成
+  createSignMessage: (walletAddress: string, nonce: string) => string;
   
-  // 方法
-  connect: () => Promise<void>;
-  disconnect: () => Promise<void>;
-  switchNetwork: (chainId: number) => Promise<void>;
+  // 消息验证
+  validateMessageFormat: (message: string, expectedFormat: string) => boolean;
   
-  // 事件监听
-  onAccountsChanged: (accounts: string[]) => void;
-  onChainChanged: (chainId: string) => void;
-  onDisconnect: () => void;
+  // 调试信息
+  getMessageDebugInfo: (message: string) => MessageDebugInfo;
+}
+
+interface MessageDebugInfo {
+  length: number;
+  hexRepresentation: string;
+  lineBreaks: string[];
+  encoding: string;
+  hash: string;
 }
 ```
 
-#### 2. Auth Service
+#### 2. 签名验证服务
 ```typescript
-interface AuthService {
-  // 认证方法
-  authenticate: (walletAddress: string, signature: string, message: string) => Promise<AuthResult>;
-  refreshToken: () => Promise<string>;
-  logout: () => Promise<void>;
+interface SignatureVerificationService {
+  // 核心验证方法
+  verifySignature: (message: string, signature: string, expectedAddress: string) => Promise<VerificationResult>;
   
-  // 状态管理
-  getAuthState: () => AuthState;
-  isAuthenticated: () => boolean;
-  getToken: () => string | null;
+  // 调试方法
+  debugSignatureVerification: (message: string, signature: string, expectedAddress: string) => Promise<DebugResult>;
   
-  // 事件
-  onAuthStateChange: (callback: (state: AuthState) => void) => void;
+  // 兼容性检查
+  checkPersonalSignCompatibility: (message: string, signature: string) => Promise<CompatibilityResult>;
+}
+
+interface VerificationResult {
+  isValid: boolean;
+  recoveredAddress: string;
+  error?: string;
+  debugInfo?: DebugResult;
+}
+
+interface DebugResult {
+  originalMessage: string;
+  messageHash: string;
+  signature: string;
+  recoveredAddress: string;
+  expectedAddress: string;
+  ethersVersion: string;
+  verificationSteps: VerificationStep[];
 }
 ```
 
-#### 3. Wallet Provider Component
+#### 3. Nonce管理接口
 ```typescript
-interface WalletProviderProps {
-  children: React.ReactNode;
-  autoConnect?: boolean;
-  supportedChains?: number[];
+interface NonceManager {
+  // Nonce生成和存储
+  generateNonce: (walletAddress: string) => Promise<NonceData>;
+  
+  // Nonce验证和清理
+  validateNonce: (walletAddress: string, nonce: string) => Promise<boolean>;
+  cleanupExpiredNonces: () => Promise<void>;
+  
+  // 调试方法
+  getNonceDebugInfo: (walletAddress: string) => Promise<NonceDebugInfo>;
 }
 
-interface WalletContextValue {
-  wallet: UseWalletConnect;
-  auth: AuthService;
-  user: User | null;
+interface NonceData {
+  nonce: string;
+  message: string;
+  expiresAt: Date;
+  walletAddress: string;
+}
+
+interface NonceDebugInfo {
+  stored: string | null;
+  expiresAt: Date | null;
+  isExpired: boolean;
+  timeRemaining: number;
 }
 ```
 
-### Chrome插件架构
+### 调试和日志系统
 
-#### 1. Background Script
+#### 1. 签名验证日志
 ```typescript
-interface BackgroundService {
-  // 钱包管理
-  connectWallet: () => Promise<WalletInfo>;
-  disconnectWallet: () => Promise<void>;
+interface SignatureVerificationLogger {
+  // 详细日志记录
+  logVerificationAttempt: (data: VerificationAttemptData) => void;
+  logVerificationResult: (result: VerificationResult) => void;
+  logError: (error: SignatureVerificationError) => void;
   
-  // 认证管理
-  authenticate: (credentials: AuthCredentials) => Promise<AuthResult>;
-  syncAuthState: () => Promise<void>;
-  
-  // 消息处理
-  handleMessage: (message: ExtensionMessage) => Promise<any>;
+  // 调试模式
+  enableDebugMode: () => void;
+  disableDebugMode: () => void;
+  getDebugLogs: () => DebugLog[];
+}
+
+interface VerificationAttemptData {
+  timestamp: Date;
+  walletAddress: string;
+  message: string;
+  messageLength: number;
+  signature: string;
+  signatureLength: number;
+  nonce: string;
+}
+
+interface SignatureVerificationError {
+  type: 'NONCE_ERROR' | 'MESSAGE_FORMAT_ERROR' | 'SIGNATURE_ERROR' | 'ADDRESS_MISMATCH';
+  message: string;
+  details: any;
+  timestamp: Date;
 }
 ```
 
-#### 2. Content Script
+#### 2. 前端调试工具
 ```typescript
-interface ContentScript {
-  // 页面交互
-  injectWalletDetection: () => void;
-  handleWalletEvents: () => void;
+interface FrontendDebugTools {
+  // 消息格式检查
+  validateMessageFormat: (message: string) => MessageFormatValidation;
   
-  // 与background通信
-  sendMessage: (message: ExtensionMessage) => Promise<any>;
+  // 签名测试
+  testSignature: (message: string, signature: string, address: string) => Promise<SignatureTest>;
   
-  // 页面数据提取
-  extractPageData: () => PageData;
+  // 网络连接测试
+  testBackendConnection: () => Promise<ConnectionTest>;
+}
+
+interface MessageFormatValidation {
+  isValid: boolean;
+  expectedFormat: string;
+  actualFormat: string;
+  differences: string[];
+}
+
+interface SignatureTest {
+  canRecover: boolean;
+  recoveredAddress: string;
+  matches: boolean;
+  error?: string;
 }
 ```
 
-#### 3. Popup Interface
-```typescript
-interface PopupState {
-  walletConnected: boolean;
-  userAuthenticated: boolean;
-  currentUser: User | null;
-  agentStatus: AgentStatus[];
-  notifications: Notification[];
-}
-```
+### 后端API增强
 
-### 后端API接口
-
-#### 1. 认证路由 (已实现)
+#### 1. 增强的认证路由
 ```typescript
-// POST /auth/nonce
+// POST /auth/nonce - 增强版本
 interface NonceRequest {
   walletAddress: string;
+  debug?: boolean; // 启用调试模式
 }
 
 interface NonceResponse {
   nonce: string;
   message: string;
+  messageHash?: string; // 调试信息
+  debugInfo?: {
+    messageLength: number;
+    encoding: string;
+    timestamp: Date;
+  };
 }
 
-// POST /auth/login
+// POST /auth/login - 增强版本
 interface LoginRequest {
   walletAddress: string;
   signature: string;
   message: string;
+  debug?: boolean;
 }
 
 interface LoginResponse {
@@ -218,314 +258,406 @@ interface LoginResponse {
   token?: string;
   user?: User;
   error?: string;
+  debugInfo?: {
+    nonceValidation: NonceValidationResult;
+    messageValidation: MessageValidationResult;
+    signatureValidation: SignatureValidationResult;
+  };
 }
 ```
 
-#### 2. 用户管理服务
+#### 2. 调试API端点
 ```typescript
-interface UserService {
-  getUserByWalletAddress: (address: string) => Promise<User | null>;
-  createUser: (address: string, preferences: UserPreferences, profile: UserProfile) => Promise<User>;
-  updateUser: (userId: string, updates: Partial<User>) => Promise<User>;
-  updateLastLogin: (userId: string) => Promise<void>;
+// POST /auth/debug/verify-signature
+interface DebugVerifyRequest {
+  message: string;
+  signature: string;
+  expectedAddress: string;
+}
+
+interface DebugVerifyResponse {
+  canRecover: boolean;
+  recoveredAddress: string;
+  matches: boolean;
+  steps: VerificationStep[];
+  ethersVersion: string;
+  error?: string;
+}
+
+// GET /auth/debug/nonce/:address
+interface DebugNonceResponse {
+  exists: boolean;
+  nonce?: string;
+  expiresAt?: Date;
+  timeRemaining?: number;
+  isExpired: boolean;
 }
 ```
 
 ## 数据模型
 
-### 前端状态模型
+### 签名验证数据模型
 
-#### 1. 钱包状态
+#### 1. 验证结果模型
 ```typescript
-interface WalletState {
-  isConnected: boolean;
-  isConnecting: boolean;
-  address: string | null;
-  chainId: number | null;
-  balance: string | null;
-  provider: any | null;
-  error: WalletError | null;
+interface VerificationStep {
+  step: string;
+  input: any;
+  output: any;
+  success: boolean;
+  error?: string;
+  timestamp: Date;
 }
 
-interface WalletError {
-  code: string;
-  message: string;
-  details?: any;
+interface NonceValidationResult {
+  exists: boolean;
+  matches: boolean;
+  isExpired: boolean;
+  storedNonce?: string;
+  providedNonce?: string;
+  expiresAt?: Date;
+}
+
+interface MessageValidationResult {
+  formatMatches: boolean;
+  expectedMessage: string;
+  providedMessage: string;
+  differences?: string[];
+  encoding: string;
+}
+
+interface SignatureValidationResult {
+  canRecover: boolean;
+  recoveredAddress: string;
+  expectedAddress: string;
+  matches: boolean;
+  ethersVersion: string;
+  error?: string;
 }
 ```
 
-#### 2. 认证状态
+#### 2. 调试数据模型
 ```typescript
-interface AuthState {
-  isAuthenticated: boolean;
-  isAuthenticating: boolean;
-  token: string | null;
-  user: User | null;
-  expiresAt: Date | null;
-  error: AuthError | null;
-}
-
-interface AuthError {
-  type: 'WALLET_ERROR' | 'SIGNATURE_ERROR' | 'NETWORK_ERROR' | 'SERVER_ERROR';
-  message: string;
-  retryable: boolean;
-}
-```
-
-#### 3. 用户模型
-```typescript
-interface User {
-  id: string;
+interface DebugSession {
+  sessionId: string;
   walletAddress: string;
-  preferences: UserPreferences;
-  profile: UserProfile;
-  createdAt: Date;
-  lastLoginAt: Date;
+  startTime: Date;
+  steps: DebugStep[];
+  finalResult: 'SUCCESS' | 'FAILURE';
+  error?: string;
 }
 
-interface UserPreferences {
-  theme: 'light' | 'dark';
-  language: string;
-  timezone: string;
-  notifications: NotificationSettings;
-  dashboard: DashboardSettings;
-  privacy: PrivacySettings;
-}
-```
-
-### Chrome插件数据模型
-
-#### 1. 插件状态
-```typescript
-interface ExtensionState {
-  wallet: WalletState;
-  auth: AuthState;
-  agents: AgentInfo[];
-  notifications: Notification[];
-  settings: ExtensionSettings;
+interface DebugStep {
+  stepName: string;
+  timestamp: Date;
+  input: any;
+  output: any;
+  duration: number;
+  success: boolean;
+  error?: string;
 }
 
-interface ExtensionSettings {
-  autoConnect: boolean;
-  syncWithWebApp: boolean;
-  notificationsEnabled: boolean;
-  theme: 'light' | 'dark' | 'auto';
+interface SignatureDebugData {
+  originalMessage: string;
+  messageBytes: Uint8Array;
+  messageHash: string;
+  signature: string;
+  signatureBytes: Uint8Array;
+  recoveryId: number;
+  publicKey: string;
+  recoveredAddress: string;
 }
 ```
 
-#### 2. 消息协议
+### 错误分类和处理
+
+#### 1. 签名验证错误类型
 ```typescript
-interface ExtensionMessage {
-  type: MessageType;
-  payload: any;
-  requestId?: string;
-  timestamp: number;
+enum SignatureVerificationErrorType {
+  NONCE_NOT_FOUND = 'NONCE_NOT_FOUND',
+  NONCE_EXPIRED = 'NONCE_EXPIRED',
+  NONCE_MISMATCH = 'NONCE_MISMATCH',
+  MESSAGE_FORMAT_INVALID = 'MESSAGE_FORMAT_INVALID',
+  SIGNATURE_INVALID = 'SIGNATURE_INVALID',
+  ADDRESS_MISMATCH = 'ADDRESS_MISMATCH',
+  ETHERS_VERIFICATION_FAILED = 'ETHERS_VERIFICATION_FAILED',
+  PERSONAL_SIGN_INCOMPATIBLE = 'PERSONAL_SIGN_INCOMPATIBLE'
 }
 
-enum MessageType {
-  CONNECT_WALLET = 'CONNECT_WALLET',
-  DISCONNECT_WALLET = 'DISCONNECT_WALLET',
-  AUTHENTICATE = 'AUTHENTICATE',
-  SYNC_STATE = 'SYNC_STATE',
-  EXECUTE_AGENT = 'EXECUTE_AGENT',
-  GET_PAGE_DATA = 'GET_PAGE_DATA'
+interface SignatureVerificationError {
+  type: SignatureVerificationErrorType;
+  message: string;
+  details: {
+    walletAddress?: string;
+    nonce?: string;
+    signature?: string;
+    recoveredAddress?: string;
+    expectedAddress?: string;
+    originalError?: any;
+  };
+  timestamp: Date;
+  debugInfo?: DebugStep[];
+}
+```
+
+#### 2. 恢复策略
+```typescript
+interface RecoveryStrategy {
+  errorType: SignatureVerificationErrorType;
+  canRetry: boolean;
+  retryDelay: number;
+  maxRetries: number;
+  recoveryAction: RecoveryAction;
+}
+
+enum RecoveryAction {
+  REGENERATE_NONCE = 'REGENERATE_NONCE',
+  RETRY_SIGNATURE = 'RETRY_SIGNATURE',
+  REFRESH_WALLET_CONNECTION = 'REFRESH_WALLET_CONNECTION',
+  CLEAR_CACHE = 'CLEAR_CACHE',
+  MANUAL_INTERVENTION = 'MANUAL_INTERVENTION'
 }
 ```
 
 ## 错误处理
 
-### 错误分类和处理策略
+### 签名验证错误处理策略
 
-#### 1. 钱包连接错误
+#### 1. 错误检测和分类
 ```typescript
-enum WalletErrorType {
-  NOT_INSTALLED = 'WALLET_NOT_INSTALLED',
-  USER_REJECTED = 'USER_REJECTED_CONNECTION',
-  NETWORK_ERROR = 'NETWORK_ERROR',
-  UNSUPPORTED_CHAIN = 'UNSUPPORTED_CHAIN',
-  WALLET_LOCKED = 'WALLET_LOCKED'
-}
-
-interface ErrorHandler {
-  handleWalletError: (error: WalletErrorType, details?: any) => ErrorResponse;
-  handleAuthError: (error: AuthErrorType, details?: any) => ErrorResponse;
-  handleNetworkError: (error: NetworkError) => ErrorResponse;
+class SignatureVerificationErrorHandler {
+  // 错误检测
+  detectErrorType(error: any, context: VerificationContext): SignatureVerificationErrorType {
+    if (error.message?.includes('nonce')) {
+      return SignatureVerificationErrorType.NONCE_NOT_FOUND;
+    }
+    if (error.message?.includes('invalid signature')) {
+      return SignatureVerificationErrorType.SIGNATURE_INVALID;
+    }
+    if (error.message?.includes('address mismatch')) {
+      return SignatureVerificationErrorType.ADDRESS_MISMATCH;
+    }
+    return SignatureVerificationErrorType.ETHERS_VERIFICATION_FAILED;
+  }
+  
+  // 错误处理
+  handleError(error: SignatureVerificationError): ErrorHandlingResult {
+    const strategy = this.getRecoveryStrategy(error.type);
+    return {
+      canRecover: strategy.canRetry,
+      recoveryAction: strategy.recoveryAction,
+      userMessage: this.getUserFriendlyMessage(error),
+      debugInfo: error.debugInfo
+    };
+  }
 }
 ```
 
-#### 2. 错误恢复机制
+#### 2. 用户友好的错误消息
 ```typescript
-interface RetryConfig {
-  maxRetries: number;
-  retryDelay: number;
-  backoffMultiplier: number;
-  retryableErrors: string[];
-}
-
-interface ErrorRecovery {
-  shouldRetry: (error: Error, attempt: number) => boolean;
-  getRetryDelay: (attempt: number) => number;
-  executeWithRetry: <T>(fn: () => Promise<T>, config: RetryConfig) => Promise<T>;
-}
-```
-
-### 用户友好的错误提示
-
-#### 1. 错误消息映射
-```typescript
-const ERROR_MESSAGES = {
-  [WalletErrorType.NOT_INSTALLED]: {
-    title: '未检测到钱包',
-    message: '请安装MetaMask或其他Web3钱包',
-    action: '安装MetaMask',
-    actionUrl: 'https://metamask.io/download/'
+const SIGNATURE_ERROR_MESSAGES = {
+  [SignatureVerificationErrorType.NONCE_NOT_FOUND]: {
+    title: 'Nonce已过期',
+    message: '签名验证码已过期，请重新获取',
+    action: '重新获取验证码',
+    technical: 'Nonce not found in Redis cache'
   },
-  [WalletErrorType.USER_REJECTED]: {
-    title: '连接被拒绝',
-    message: '您拒绝了钱包连接请求',
-    action: '重试连接',
-    actionUrl: null
+  [SignatureVerificationErrorType.SIGNATURE_INVALID]: {
+    title: '签名无效',
+    message: '数字签名验证失败，请重新签名',
+    action: '重新签名',
+    technical: 'ethers.verifyMessage failed to recover address'
   },
-  [WalletErrorType.UNSUPPORTED_CHAIN]: {
-    title: '网络不支持',
-    message: '请切换到以太坊主网',
-    action: '切换网络',
-    actionUrl: null
+  [SignatureVerificationErrorType.ADDRESS_MISMATCH]: {
+    title: '地址不匹配',
+    message: '签名地址与钱包地址不匹配',
+    action: '检查钱包连接',
+    technical: 'Recovered address does not match wallet address'
+  },
+  [SignatureVerificationErrorType.MESSAGE_FORMAT_INVALID]: {
+    title: '消息格式错误',
+    message: '签名消息格式不正确',
+    action: '重新生成消息',
+    technical: 'Message format does not match expected format'
   }
 };
 ```
 
 ## 测试策略
 
-### 单元测试
+### 签名验证测试
 
-#### 1. 钱包连接测试
+#### 1. 消息格式一致性测试
 ```typescript
-describe('WalletConnect Hook', () => {
-  test('should detect MetaMask availability', async () => {
-    // 测试钱包检测逻辑
+describe('Message Format Consistency', () => {
+  test('should generate identical messages on frontend and backend', () => {
+    const walletAddress = '0x1234567890123456789012345678901234567890';
+    const nonce = 'test-nonce-123';
+    
+    const frontendMessage = createSignMessage(walletAddress, nonce);
+    const backendMessage = createSignMessage(walletAddress, nonce);
+    
+    expect(frontendMessage).toBe(backendMessage);
+    expect(frontendMessage.length).toBe(backendMessage.length);
   });
   
-  test('should handle connection success', async () => {
-    // 测试连接成功流程
+  test('should handle special characters consistently', () => {
+    // 测试换行符、特殊字符的处理
   });
   
-  test('should handle connection rejection', async () => {
-    // 测试连接拒绝处理
-  });
-  
-  test('should handle network switching', async () => {
-    // 测试网络切换功能
+  test('should maintain encoding consistency', () => {
+    // 测试UTF-8编码一致性
   });
 });
 ```
 
-#### 2. 认证服务测试
+#### 2. 签名验证兼容性测试
 ```typescript
-describe('Auth Service', () => {
-  test('should authenticate with valid signature', async () => {
-    // 测试有效签名认证
+describe('Signature Verification Compatibility', () => {
+  test('should verify personal_sign signatures with ethers.verifyMessage', async () => {
+    const message = 'Test message for signing';
+    const privateKey = '0x...'; // 测试私钥
+    const wallet = new ethers.Wallet(privateKey);
+    
+    // 模拟personal_sign
+    const signature = await wallet.signMessage(message);
+    
+    // 使用ethers.verifyMessage验证
+    const recoveredAddress = ethers.verifyMessage(message, signature);
+    
+    expect(recoveredAddress.toLowerCase()).toBe(wallet.address.toLowerCase());
   });
   
-  test('should handle invalid signature', async () => {
-    // 测试无效签名处理
-  });
-  
-  test('should refresh expired token', async () => {
-    // 测试token刷新
-  });
-  
-  test('should handle logout', async () => {
-    // 测试登出功能
+  test('should handle different signature formats', async () => {
+    // 测试不同的签名格式兼容性
   });
 });
 ```
 
-### 集成测试
-
-#### 1. 端到端认证流程
+#### 3. Nonce管理测试
 ```typescript
-describe('E2E Authentication Flow', () => {
-  test('should complete full authentication flow', async () => {
-    // 1. 连接钱包
-    // 2. 获取nonce
-    // 3. 签名消息
-    // 4. 验证认证
-    // 5. 存储token
-    // 6. 跳转仪表板
+describe('Nonce Management', () => {
+  test('should generate unique nonces', async () => {
+    const nonce1 = generateNonce();
+    const nonce2 = generateNonce();
+    expect(nonce1).not.toBe(nonce2);
   });
   
-  test('should handle authentication errors', async () => {
-    // 测试各种错误场景
+  test('should expire nonces after timeout', async () => {
+    // 测试nonce过期机制
+  });
+  
+  test('should prevent nonce reuse', async () => {
+    // 测试nonce重复使用防护
   });
 });
 ```
 
-#### 2. Chrome插件集成测试
+### 调试和监控测试
+
+#### 1. 调试信息测试
 ```typescript
-describe('Chrome Extension Integration', () => {
-  test('should sync auth state with web app', async () => {
-    // 测试状态同步
+describe('Debug Information', () => {
+  test('should provide detailed verification steps', async () => {
+    const debugResult = await debugSignatureVerification(message, signature, address);
+    
+    expect(debugResult.steps).toHaveLength(5);
+    expect(debugResult.steps[0].step).toBe('message_validation');
+    expect(debugResult.steps[1].step).toBe('signature_parsing');
+    expect(debugResult.steps[2].step).toBe('address_recovery');
+    expect(debugResult.steps[3].step).toBe('address_comparison');
+    expect(debugResult.steps[4].step).toBe('final_result');
   });
   
-  test('should handle background script communication', async () => {
-    // 测试消息通信
+  test('should capture error details', async () => {
+    // 测试错误详情捕获
   });
 });
 ```
 
-### 性能测试
+### 性能和可靠性测试
 
-#### 1. 认证性能指标
-- 钱包连接时间 < 2秒
-- 签名验证时间 < 1秒
-- Token刷新时间 < 500ms
-- 状态同步时间 < 300ms
+#### 1. 签名验证性能
+- 单次签名验证 < 100ms
+- Nonce生成和存储 < 50ms
+- 消息格式验证 < 10ms
+- 错误处理响应 < 20ms
 
-#### 2. 内存和存储优化
-- 本地存储使用 < 1MB
-- 内存占用 < 10MB
-- 缓存命中率 > 90%
+#### 2. 并发处理测试
+```typescript
+describe('Concurrent Signature Verification', () => {
+  test('should handle multiple simultaneous verifications', async () => {
+    const promises = Array.from({ length: 100 }, () => 
+      verifySignature(message, signature, address)
+    );
+    
+    const results = await Promise.all(promises);
+    expect(results.every(r => r.isValid)).toBe(true);
+  });
+});
+```
 
-## 安全考虑
+## 实施计划
 
-### 1. 私钥安全
-- 私钥永远不离开用户设备
-- 不在任何地方存储或传输私钥
-- 使用钱包提供的签名API
+### 阶段1：问题诊断和修复（优先级：高）
 
-### 2. Token安全
-- JWT token使用强加密算法
-- Token包含过期时间和刷新机制
-- 敏感信息不存储在token中
+#### 1.1 添加详细调试日志
+- 在前端WalletContext中添加签名过程日志
+- 在后端auth.ts中添加验证过程日志
+- 记录消息内容、签名数据、恢复地址等关键信息
 
-### 3. 通信安全
-- 所有API调用使用HTTPS
-- 验证所有用户输入
-- 防止CSRF和XSS攻击
+#### 1.2 验证消息格式一致性
+- 确保前后端使用相同的createSignMessage函数
+- 检查消息编码和换行符处理
+- 验证nonce格式和生成逻辑
 
-### 4. 存储安全
-- 敏感数据加密存储
-- 定期清理过期数据
-- 实现安全的数据备份
+#### 1.3 修复签名验证逻辑
+- 确认ethers.verifyMessage与personal_sign的兼容性
+- 处理地址大小写问题
+- 修复任何编码或格式问题
 
-## 部署和监控
+### 阶段2：增强错误处理（优先级：中）
 
-### 1. 部署策略
-- 前端部署到CDN
-- 后端API部署到容器
-- Chrome插件发布到商店
+#### 2.1 实现详细错误分类
+- 区分不同类型的签名验证错误
+- 提供用户友好的错误消息
+- 实现错误恢复策略
 
-### 2. 监控指标
-- 认证成功率
-- 错误率和类型分布
-- 响应时间监控
-- 用户行为分析
+#### 2.2 添加调试API端点
+- 创建签名验证调试接口
+- 提供nonce状态查询接口
+- 实现验证步骤跟踪
 
-### 3. 日志记录
-- 认证事件日志
-- 错误详细日志
-- 性能监控日志
-- 安全事件日志
+### 阶段3：测试和验证（优先级：中）
 
-这个设计文档提供了完整的Web3钱包认证系统架构，涵盖了前端集成、Chrome插件、后端API、数据模型、错误处理、测试策略和安全考虑等各个方面。
+#### 3.1 创建全面的测试套件
+- 单元测试覆盖所有签名验证逻辑
+- 集成测试验证端到端流程
+- 性能测试确保响应时间
+
+#### 3.2 实施监控和日志
+- 部署生产环境监控
+- 实现错误率和成功率跟踪
+- 创建性能指标仪表板
+
+## 成功标准
+
+### 功能标准
+1. 用户能够成功完成Web3钱包登录
+2. 签名验证成功率达到99%以上
+3. 错误信息清晰且可操作
+4. 调试信息完整且有用
+
+### 性能标准
+1. 签名验证响应时间 < 1秒
+2. 错误处理响应时间 < 500ms
+3. 系统可用性 > 99.9%
+4. 并发处理能力 > 100 req/s
+
+### 用户体验标准
+1. 错误消息用户友好
+2. 重试机制简单直观
+3. 调试信息对开发者有用
+4. 整体流程流畅无阻
+
+这个设计文档专注于解决Web3签名验证失败的核心问题，提供了详细的技术方案、实施计划和成功标准。

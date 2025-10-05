@@ -224,52 +224,116 @@ export function WalletProvider({ children }: WalletProviderProps) {
 
     if (auth.isAuthenticating) return;
 
+    console.log('\n=== Web3 Login Process Started ===');
+    console.log('Wallet Address:', wallet.address);
+    console.log('Timestamp:', new Date().toISOString());
+
     setAuth(prev => ({ ...prev, isAuthenticating: true, error: null }));
 
     try {
       // 1. 获取nonce
+      console.log('\n--- Step 1: Requesting Nonce ---');
+      console.log('Request URL:', 'http://localhost:3001/api/auth/nonce');
+      console.log('Request Body:', { walletAddress: wallet.address });
+      
       const nonceResponse = await fetch('http://localhost:3001/api/auth/nonce', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ walletAddress: wallet.address })
       });
 
+      console.log('Nonce Response Status:', nonceResponse.status);
+      console.log('Nonce Response OK:', nonceResponse.ok);
+
       if (!nonceResponse.ok) {
+        const errorText = await nonceResponse.text();
+        console.error('Nonce Request Failed:', errorText);
         throw new Error('Failed to get nonce');
       }
 
       const { nonce, message } = await nonceResponse.json();
+      
+      console.log('Received Nonce:', nonce);
+      console.log('Message to Sign:');
+      console.log('- Content:', JSON.stringify(message));
+      console.log('- Length:', message.length);
+      console.log('- First 100 chars:', message.substring(0, 100));
+      console.log('- Last 100 chars:', message.substring(message.length - 100));
+      console.log('- Contains wallet address:', message.includes(wallet.address));
+      console.log('- Contains nonce:', message.includes(nonce));
 
       // 2. 签名消息
+      console.log('\n--- Step 2: Signing Message ---');
+      console.log('Signing Method: personal_sign');
+      console.log('Signing Params:', [message, wallet.address]);
+      
       const signature = await (window as any).ethereum.request({
         method: 'personal_sign',
         params: [message, wallet.address]
       });
 
+      console.log('Signature Result:');
+      console.log('- Signature:', signature);
+      console.log('- Signature Length:', signature.length);
+      console.log('- Signature Type:', typeof signature);
+      console.log('- Starts with 0x:', signature.startsWith('0x'));
+
       // 3. 提交认证
+      console.log('\n--- Step 3: Submitting Authentication ---');
+      const loginPayload = {
+        walletAddress: wallet.address,
+        signature,
+        message
+      };
+      console.log('Login Payload:', {
+        walletAddress: loginPayload.walletAddress,
+        signature: loginPayload.signature,
+        messageLength: loginPayload.message.length,
+        messagePreview: loginPayload.message.substring(0, 50) + '...'
+      });
+      
       const loginResponse = await fetch('http://localhost:3001/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          walletAddress: wallet.address,
-          signature,
-          message
-        })
+        body: JSON.stringify(loginPayload)
       });
 
+      console.log('Login Response Status:', loginResponse.status);
+      console.log('Login Response OK:', loginResponse.ok);
+
       if (!loginResponse.ok) {
-        throw new Error('Login failed');
+        const errorResponse = await loginResponse.text();
+        console.error('Login Request Failed:');
+        console.error('- Status:', loginResponse.status);
+        console.error('- Response:', errorResponse);
+        throw new Error(`Login failed: ${errorResponse}`);
       }
 
-      const { success, token, user } = await loginResponse.json();
+      const loginResult = await loginResponse.json();
+      console.log('Login Response Data:', loginResult);
+
+      const { success, token, user } = loginResult;
 
       if (!success || !token) {
+        console.error('Invalid Login Response:');
+        console.error('- Success:', success);
+        console.error('- Token Present:', !!token);
+        console.error('- User Present:', !!user);
         throw new Error('Invalid login response');
       }
 
       // 保存认证信息
+      console.log('\n--- Step 4: Saving Authentication Data ---');
+      console.log('Token to Save:', token.substring(0, 20) + '...');
+      console.log('User Data:', user);
+      
       localStorage.setItem('auth_token', token);
       localStorage.setItem('current_user', JSON.stringify(user));
+
+      console.log('Storage Verification:');
+      console.log('- Token in localStorage:', !!localStorage.getItem('auth_token'));
+      console.log('- User in localStorage:', !!localStorage.getItem('current_user'));
+      console.log('- Token matches:', localStorage.getItem('auth_token') === token);
 
       setAuth({
         isAuthenticated: true,
@@ -279,12 +343,39 @@ export function WalletProvider({ children }: WalletProviderProps) {
         error: null,
       });
 
+      console.log('\n=== Web3 Login Process Completed Successfully ===');
+      console.log('Final Auth State:', {
+        isAuthenticated: true,
+        hasToken: !!token,
+        hasUser: !!user,
+        userId: user?.id
+      });
+
     } catch (error: any) {
-      console.error('Login failed:', error);
+      console.error('\n=== Web3 Login Process Failed ===');
+      console.error('Error Type:', error.constructor.name);
+      console.error('Error Message:', error.message);
+      console.error('Error Stack:', error.stack);
+      console.error('Current Wallet State:', {
+        isConnected: wallet.isConnected,
+        address: wallet.address,
+        chainId: wallet.chainId
+      });
+      
+      // 显示更详细的错误信息
+      let errorMessage = error.message || 'Login failed';
+      if (error.message && error.message.includes('signature')) {
+        errorMessage = `Signature verification failed. Please try again. Details: ${error.message}`;
+        console.error('Signature Verification Error Detected');
+      } else if (error.message && error.message.includes('nonce')) {
+        errorMessage = `Nonce validation failed. Please try again. Details: ${error.message}`;
+        console.error('Nonce Validation Error Detected');
+      }
+      
       setAuth(prev => ({
         ...prev,
         isAuthenticating: false,
-        error: error.message || 'Login failed'
+        error: errorMessage
       }));
       throw error;
     }

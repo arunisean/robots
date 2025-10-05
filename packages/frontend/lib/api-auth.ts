@@ -22,19 +22,28 @@ async function fetchWithAuth<T>(
 ): Promise<T> {
   const token = getAuthToken();
   
+  console.log('fetchWithAuth called:');
+  console.log('- Endpoint:', endpoint);
+  console.log('- Token from localStorage:', token ? token.substring(0, 20) + '...' : 'null');
+  
   if (!token) {
     throw new Error('Authentication required. Please login first.');
   }
 
   const url = `${API_BASE_URL}${endpoint}`;
   
+  const headers = {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+    ...options.headers,
+  };
+  
+  console.log('- Request URL:', url);
+  console.log('- Authorization header:', headers.Authorization.substring(0, 30) + '...');
+  
   const response = await fetch(url, {
     ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`,
-      ...options.headers,
-    },
+    headers,
   });
 
   if (!response.ok) {
