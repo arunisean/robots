@@ -47,7 +47,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
 
       // 将nonce存储到Redis，设置5分钟过期
       const nonceKey = `nonce:${walletAddress}`;
-      console.log('🔄 Attempting to store nonce in Redis');
+      console.log('🔄 Attempting to store nonce');
       console.log('- Redis service available:', !!fastify.redis);
       console.log('- Nonce key:', nonceKey);
       console.log('- Nonce value:', nonce);
@@ -65,7 +65,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
           console.error('❌ Failed to store nonce in Redis:', error);
         }
       } else {
-        console.log('⚠️  Redis not available, nonce not stored');
+        console.log('⚠️  Redis not available, using memory storage as fallback');
+        // Temporary in-memory storage for development
+        if (!global.nonceStore) {
+          global.nonceStore = new Map();
+        }
+        global.nonceStore.set(nonceKey, { nonce, expiresAt: Date.now() + 300000 });
+        console.log('✅ Nonce stored in memory storage');
       }
 
       logger.info(`Generated nonce for wallet: ${walletAddress}`);
@@ -144,8 +150,29 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       const nonceKey = `nonce:${walletAddress}`;
       console.log('Nonce Key:', nonceKey);
       
-      const storedNonce = fastify.redis ? await fastify.redis.get(nonceKey) : null;
-      console.log('Stored Nonce:', storedNonce);
+      let storedNonce = null;
+      
+      if (fastify.redis) {
+        storedNonce = await fastify.redis.get(nonceKey);
+        console.log('Stored Nonce (Redis):', storedNonce);
+      } else {
+        // Fallback to memory storage
+        console.log('Using memory storage fallback');
+        if (global.nonceStore && global.nonceStore.has(nonceKey)) {
+          const nonceData = global.nonceStore.get(nonceKey);
+          if (nonceData.expiresAt > Date.now()) {
+            storedNonce = nonceData.nonce;
+            console.log('Stored Nonce (Memory):', storedNonce);
+          } else {
+            console.log('Nonce expired in memory storage');
+            global.nonceStore.delete(nonceKey);
+          }
+        } else {
+          console.log('No nonce found in memory storage');
+        }
+      }
+      
+      console.log('Final Stored Nonce:', storedNonce);
       console.log('Redis Available:', !!fastify.redis);
 
       if (!storedNonce) {
@@ -230,7 +257,13 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         await fastify.redis.del(nonceKey);
         console.log('Nonce deleted from Redis:', nonceKey);
       } else {
-        console.log('Redis not available, nonce not deleted');
+        // Clean up from memory storage
+        if (global.nonceStore && global.nonceStore.has(nonceKey)) {
+          global.nonceStore.delete(nonceKey);
+          console.log('Nonce deleted from memory storage:', nonceKey);
+        } else {
+          console.log('No nonce to delete from memory storage');
+        }
       }
 
       // 查找或创建用户
