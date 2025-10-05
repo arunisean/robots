@@ -136,8 +136,17 @@ export class WorkflowRepository {
       paramIndex++;
     }
 
-    // Sorting
-    const sortBy = filters?.sortBy || 'created_at';
+    // Sorting - map camelCase to snake_case
+    const sortByMap: Record<string, string> = {
+      'createdAt': 'created_at',
+      'updatedAt': 'updated_at',
+      'lastExecutedAt': 'last_executed_at',
+      'name': 'name',
+      'status': 'status'
+    };
+    
+    const sortByField = filters?.sortBy || 'createdAt';
+    const sortBy = sortByMap[sortByField] || 'created_at';
     const sortOrder = filters?.sortOrder || 'desc';
     query += ` ORDER BY ${sortBy} ${sortOrder}`;
 
