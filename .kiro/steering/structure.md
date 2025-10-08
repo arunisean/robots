@@ -79,9 +79,10 @@ src/
 ## Agent Architecture Patterns
 
 ### Base Agent Structure
-- All agents inherit from `BaseAgent` class
+- All agents inherit from `BaseAgent` class using abstract base class pattern
 - Implement specific interfaces (`IWorkAgent`, `IProcessAgent`, etc.)
 - Follow consistent lifecycle: `initialize()` → `execute()` → `cleanup()`
+- Uses template method pattern to define execution flow
 
 ### Agent Categories
 1. **Work Agents**: Data collection and ingestion
@@ -103,6 +104,12 @@ src/
    - Performance validators
    - Content quality checkers
    - Security scanners
+
+### Agent Framework Implementation
+- Custom-built agent framework with abstract base classes
+- AgentFactory for creating different agent types
+- AgentRuntimeManager for managing agent execution and sandboxing
+- Template method pattern for consistent execution flow across all agents
 
 ### Runtime Management
 - `AgentSandbox`: Isolated execution environment

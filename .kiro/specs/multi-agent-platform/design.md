@@ -2,7 +2,7 @@
 
 ## 概述
 
-多Agent自动化平台是一个基于Web3身份认证的去中心化Agent编排系统，采用微服务架构和容器化部署。平台核心基于n8n工作流引擎扩展，集成CrewAI多Agent框架，通过Chrome插件提供用户交互界面，实现从数据采集到内容发布的完整自动化流程。
+多Agent自动化平台是一个基于Web3身份认证的去中心化Agent编排系统，采用微服务架构和容器化部署。平台核心基于自定义工作流引擎，通过Chrome插件提供用户交互界面，实现从数据采集到内容发布的完整自动化流程。Agent系统采用抽象基类模式实现，支持四类核心Agent：Work（数据采集）、Process（数据处理）、Publish（内容发布）、Validate（质量验证）。
 
 ## 架构
 
@@ -21,17 +21,17 @@ graph TB
     end
     
     subgraph "核心服务层"
-        WF[工作流引擎<br/>n8n扩展]
+        WF[工作流引擎<br/>自定义实现]
         AM[Agent管理器]
         VS[验证服务]
         SCH[调度服务]
     end
     
     subgraph "Agent运行时层"
-        CA[采集Agent]
-        PA[处理Agent]
-        PUB[发布Agent]
-        VA[验证Agent]
+        CA[采集Agent<br/>Work Agent]
+        PA[处理Agent<br/>Process Agent]
+        PUB[发布Agent<br/>Publish Agent]
+        VA[验证Agent<br/>Validate Agent]
     end
     
     subgraph "数据层"
@@ -78,9 +78,9 @@ graph TB
 - Web3集成：ethers.js + WalletConnect
 
 **后端技术栈：**
-- 工作流引擎：n8n (Node.js) + 自定义Agent节点
-- Agent框架：CrewAI + FastAPI (Python)
-- API网关：Kong + JWT认证
+- 工作流引擎：Fastify + 自定义实现
+- Agent框架：TypeScript自定义框架，基于抽象基类模式
+- API网关：Fastify + JWT认证
 - 数据库：PostgreSQL + Redis
 - 消息队列：Redis Streams
 

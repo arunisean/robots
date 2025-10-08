@@ -2,7 +2,7 @@
 
 ## Overview
 
-This design document outlines the architecture and implementation approach for enabling end-to-end workflow execution in the multi-agent automation platform. The system will support the complete lifecycle: local environment setup, workflow configuration, execution, monitoring, and result visualization through both web and Chrome extension interfaces.
+This design document outlines the architecture and implementation approach for enabling end-to-end workflow execution in the multi-agent automation platform. The system will support the complete lifecycle: local environment setup, workflow configuration, execution, monitoring, and result visualization through both web and Chrome extension interfaces. The agent system is built on a custom framework using abstract base classes with four core agent categories.
 
 ## Architecture
 
@@ -28,10 +28,10 @@ graph TB
     end
     
     subgraph "Agent Layer"
-        WORK[Work Agents<br/>WebScraper, RSS, API]
-        PROC[Process Agents<br/>TextProcessor, ContentGen]
-        PUB[Publish Agents<br/>Twitter, Website]
-        VAL[Validate Agents<br/>Performance, Quality]
+        WORK[Work Agents<br/>WebScraper, RSS, API<br/>Custom Framework]
+        PROC[Process Agents<br/>TextProcessor, ContentGen<br/>Custom Framework]
+        PUB[Publish Agents<br/>Twitter, Website<br/>Custom Framework]
+        VAL[Validate Agents<br/>Performance, Quality<br/>Custom Framework]
     end
     
     subgraph "Data Layer"
@@ -88,7 +88,46 @@ graph TB
 
 ## Components and Interfaces
 
-### 1. Workflow Data Model
+### 1. Agent Framework Architecture
+
+The agent system uses a custom-built framework based on abstract base classes with the following structure:
+
+```typescript
+// Abstract base class using template method pattern
+abstract class BaseAgent implements IAgent {
+  protected config: AgentConfig;
+  protected logger: Logger;
+  protected status: AgentStatus;
+  protected metrics: AgentMetrics;
+  
+  // Template method defining execution flow
+  async execute(input: AgentInput): Promise<AgentOutput> {
+    const startTime = Date.now();
+    
+    try {
+      await this.preExecute(input);
+      const result = await this.doExecute(input);
+      const output = await this.postExecute(result, input);
+      this.recordSuccess(Date.now() - startTime);
+      return output;
+    } catch (error) {
+      this.recordFailure(error, Date.now() - startTime);
+      throw error;
+    }
+  }
+  
+  // To be implemented by subclasses
+  protected abstract doExecute(input: AgentInput): Promise<any>;
+}
+
+// Four main agent categories
+abstract class WorkAgent extends BaseAgent { }
+abstract class ProcessAgent extends BaseAgent { }
+abstract class PublishAgent extends BaseAgent { }
+abstract class ValidateAgent extends BaseAgent { }
+```
+
+### 2. Workflow Data Model
 
 ```typescript
 interface Workflow {

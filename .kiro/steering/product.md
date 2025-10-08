@@ -6,7 +6,7 @@ A decentralized agent orchestration system with Web3 identity authentication tha
 
 ## Core Concept
 
-Similar to n8n workflow orchestration but specifically designed for AI Agent deployment, scheduling, and management. The platform enables users to create complex automation pipelines using four types of specialized agents:
+A custom-built workflow orchestration system specifically designed for AI Agent deployment, scheduling, and management. The platform enables users to create complex automation pipelines using four types of specialized agents implemented with an abstract base class pattern:
 
 - **Work Agents**: Data collection (web scraping, API calls, social media)
 - **Process Agents**: Data processing (content generation, transformation, LLM integration)

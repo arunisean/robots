@@ -17,6 +17,7 @@
 - **Testing**: Jest with ts-jest
 - **Real-time**: WebSocket support via @fastify/websocket (planned)
 - **ORM**: Custom repository pattern with raw SQL for performance
+- **Agent Framework**: Custom-built agent system with abstract base classes
 
 ## Frontend Stack
 
