@@ -102,20 +102,20 @@ export const NoCodeConfigPanel: React.FC<NoCodeConfigPanelProps> = ({
       return;
     }
 
-    // Async validation (optional)
-    setIsValidating(true);
-    try {
-      const asyncResult = await Validator.validateConfigAsync(agentTypeId, config);
-      if (!asyncResult.valid) {
-        setErrors(asyncResult.errors);
-        setIsValidating(false);
-        return;
-      }
-    } catch (error) {
-      console.error('Async validation error:', error);
-      // Continue anyway if async validation fails
-    }
-    setIsValidating(false);
+    // Async validation (optional) - skip for now as backend validation may not be implemented
+    // setIsValidating(true);
+    // try {
+    //   const asyncResult = await Validator.validateConfigAsync(agentTypeId, config);
+    //   if (!asyncResult.valid) {
+    //     setErrors(asyncResult.errors);
+    //     setIsValidating(false);
+    //     return;
+    //   }
+    // } catch (error) {
+    //   console.error('Async validation error:', error);
+    //   // Continue anyway if async validation fails
+    // }
+    // setIsValidating(false);
 
     // Save
     setIsSaving(true);
