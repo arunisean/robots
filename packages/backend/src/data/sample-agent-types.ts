@@ -58,7 +58,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'url', 'selectors']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
@@ -168,7 +168,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'endpoint']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
@@ -242,7 +242,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'aiModel', 'prompt']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
@@ -316,7 +316,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'apiKey', 'content']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
@@ -346,6 +346,121 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
     releaseDate: new Date('2024-01-20'),
     lastUpdated: new Date('2024-02-10'),
     implementation: getImplementationInfo('publish.twitter') || undefined
+  },
+
+  // Text Processor - PROCESS类型
+  {
+    id: 'process.text_processor',
+    name: 'Text Processor',
+    displayName: {
+      zh: '文本处理器',
+      en: 'Text Processor'
+    },
+    description: '处理和转换文本数据，支持多种文本操作和格式化',
+    icon: '📝',
+    category: AgentCategory.PROCESS,
+    categoryPath: 'PROCESS > Text Processor',
+    version: '1.2.0',
+    author: 'Multi-Agent Platform Team',
+    tags: ['文本处理', '数据转换', '格式化', 'NLP'],
+    complexity: 'easy',
+    popularity: 1450,
+    rating: 4.7,
+    features: [
+      '文本清洗和格式化',
+      '多种转换规则',
+      '正则表达式支持',
+      '批量处理',
+      '语言检测',
+      '情感分析'
+    ],
+    capabilities: [
+      '支持多种文本格式',
+      '智能文本分析',
+      '自动格式转换',
+      '质量评分'
+    ],
+    limitations: [
+      '不支持图像文本识别',
+      '单次处理文本长度限制'
+    ],
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('processingRules', {
+          type: 'object',
+          title: '处理规则',
+          description: '定义文本处理规则',
+          properties: {
+            ruleType: {
+              type: 'string',
+              title: '规则类型',
+              description: '选择处理规则类型',
+              enum: ['clean', 'format', 'extract', 'transform'],
+              ui: { widget: 'select' }
+            },
+            pattern: {
+              type: 'string',
+              title: '匹配模式',
+              description: '正则表达式或匹配模式',
+              ui: { widget: 'input', placeholder: '.*' }
+            }
+          },
+          ui: { widget: 'input' }
+        })
+        .addField('outputFormat', ConfigFields.select(
+          '输出格式',
+          '处理后的输出格式',
+          ['plain', 'markdown', 'html', 'json'],
+          'plain'
+        ))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'processingRules']);
+      
+      return builder.build();
+    })(),
+    defaultConfig: {
+      name: '文本处理器',
+      description: '处理和转换文本数据',
+      enabled: true,
+      retries: 2,
+      timeout: 30
+    },
+    configPresets: [],
+    requirements: {
+      minMemory: 256,
+      minCpu: 1,
+      minStorage: 50,
+      dependencies: ['natural', 'cheerio'],
+      permissions: ['storage.read', 'storage.write']
+    },
+    documentation: {
+      overview: 'Text Processor用于处理和转换各种文本数据',
+      quickStart: '配置处理规则即可开始处理文本',
+      apiReference: 'Text Processor API文档',
+      examples: [
+        {
+          title: '文本清洗',
+          description: '清除HTML标签和特殊字符',
+          language: 'json',
+          code: JSON.stringify({
+            name: '文本清洗器',
+            processingRules: {
+              ruleType: 'clean',
+              pattern: '<[^>]*>'
+            },
+            outputFormat: 'plain'
+          }, null, 2),
+          tags: ['清洗', '基础']
+        }
+      ]
+    },
+    status: 'stable',
+    isAvailable: true,
+    releaseDate: new Date('2024-01-12'),
+    lastUpdated: new Date('2024-02-18'),
+    implementation: getImplementationInfo('process.text_processor') || undefined
   },
 
   // RSS Collector - WORK类型
@@ -390,7 +505,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'feedUrl']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
@@ -466,7 +581,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'apiKey', 'content']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
@@ -543,7 +658,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
         .addScheduleFields()
         .addErrorHandlingFields()
         .setRequired(['name', 'websiteUrl', 'apiEndpoint', 'content']);
-      
+
       return builder.build();
     })(),
     defaultConfig: {
