@@ -2,10 +2,12 @@
  * API client for workflow management
  */
 
+import { authService } from '../services/authService';
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 /**
- * Fetch wrapper with error handling
+ * Fetch wrapper with error handling and authentication
  */
 async function fetchAPI<T>(
   endpoint: string,
@@ -13,13 +15,20 @@ async function fetchAPI<T>(
 ): Promise<T> {
   const url = `${API_BASE_URL}${endpoint}`;
   
+  // Get authentication token
+  const token = authService.getToken();
+  console.log('🔑 Auth token available:', !!token);
+  
   const response = await fetch(url, {
     ...options,
     headers: {
       'Content-Type': 'application/json',
+      ...(token && { 'Authorization': `Bearer ${token}` }),
       ...options.headers,
     },
   });
+  
+  console.log(`📡 API call: ${options.method || 'GET'} ${url} - Status: ${response.status}`);
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({ message: response.statusText }));
@@ -31,7 +40,7 @@ async function fetchAPI<T>(
 
 /**
  * Workflow API
- * Using public endpoints for testing (no authentication required)
+ * Uses authenticated endpoints with Web3 wallet authentication
  */
 export const workflowAPI = {
   /**
@@ -50,41 +59,45 @@ export const workflowAPI = {
     if (filters?.offset) params.append('offset', filters.offset.toString());
 
     const query = params.toString();
-    return fetchAPI<any>(`/api/public/workflows${query ? `?${query}` : ''}`);
+    const response = await fetchAPI<any>(`/api/workflows${query ? `?${query}` : ''}`);
+    return response.data || response;
   },
 
   /**
    * Get workflow by ID
    */
   get: async (id: string) => {
-    return fetchAPI<any>(`/api/public/workflows/${id}`);
+    const response = await fetchAPI<any>(`/api/workflows/${id}`);
+    return response.data || response;
   },
 
   /**
    * Create new workflow
    */
   create: async (data: any) => {
-    return fetchAPI<any>('/api/public/workflows', {
+    const response = await fetchAPI<any>('/api/workflows', {
       method: 'POST',
       body: JSON.stringify(data),
     });
+    return response.data || response;
   },
 
   /**
    * Update workflow
    */
   update: async (id: string, data: any) => {
-    return fetchAPI<any>(`/api/public/workflows/${id}`, {
+    const response = await fetchAPI<any>(`/api/workflows/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     });
+    return response.data || response;
   },
 
   /**
    * Delete workflow
    */
   delete: async (id: string) => {
-    return fetchAPI<void>(`/api/public/workflows/${id}`, {
+    return fetchAPI<void>(`/api/workflows/${id}`, {
       method: 'DELETE',
     });
   },
@@ -93,17 +106,19 @@ export const workflowAPI = {
    * Execute workflow
    */
   execute: async (id: string, options?: any) => {
-    return fetchAPI<any>(`/api/public/workflows/${id}/execute`, {
+    const response = await fetchAPI<any>(`/api/workflows/${id}/execute`, {
       method: 'POST',
       body: JSON.stringify(options || {}),
     });
+    return response.data || response;
   },
 
   /**
    * Get workflow executions
    */
   getExecutions: async (id: string) => {
-    return fetchAPI<any>(`/api/public/workflows/${id}/executions`);
+    const response = await fetchAPI<any>(`/api/workflows/${id}/executions`);
+    return response.data || response;
   },
 };
 

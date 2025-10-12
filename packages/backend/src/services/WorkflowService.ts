@@ -56,23 +56,31 @@ export class WorkflowService extends EventEmitter {
    * Get workflow by ID
    */
   async getWorkflow(workflowId: string, userId: string): Promise<Workflow> {
-    this.logger.debug(`Getting workflow: ${workflowId}`);
+    this.logger.debug(`Getting workflow: ${workflowId} for user: ${userId}`);
 
     try {
       const workflow = await this.workflowRepo.findById(workflowId);
       
       if (!workflow) {
+        this.logger.warn(`Workflow ${workflowId} not found`);
         throw new Error(`Workflow ${workflowId} not found`);
       }
 
       // Check ownership
       if (workflow.ownerId !== userId) {
+        this.logger.warn(`Access denied: User ${userId} does not own workflow ${workflowId} (owner: ${workflow.ownerId})`);
         throw new Error('Access denied: You do not own this workflow');
       }
 
+      this.logger.debug(`Successfully retrieved workflow ${workflowId}`);
       return workflow;
     } catch (error) {
-      this.logger.error(`Failed to get workflow ${workflowId}:`, error);
+      this.logger.error(`Failed to get workflow ${workflowId}:`, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        workflowId,
+        userId
+      });
       throw error;
     }
   }

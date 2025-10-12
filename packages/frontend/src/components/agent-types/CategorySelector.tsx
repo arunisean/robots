@@ -17,7 +17,6 @@ interface CategoryInfo {
 interface CategorySelectorProps {
   onSelect: (category: AgentCategory) => void;
   selectedCategory?: AgentCategory;
-  language?: 'zh' | 'en';
 }
 
 const CATEGORY_INFO: Omit<CategoryInfo, 'count'>[] = [
@@ -25,10 +24,10 @@ const CATEGORY_INFO: Omit<CategoryInfo, 'count'>[] = [
     category: AgentCategory.WORK,
     name: 'WORK',
     displayName: {
-      zh: '数据收集',
+      zh: 'Data Collection',
       en: 'Data Collection'
     },
-    description: '从各种数据源收集和采集数据',
+    description: 'Collect and gather data from various sources',
     icon: '📥',
     color: 'blue'
   },
@@ -36,10 +35,10 @@ const CATEGORY_INFO: Omit<CategoryInfo, 'count'>[] = [
     category: AgentCategory.PROCESS,
     name: 'PROCESS',
     displayName: {
-      zh: '数据处理',
+      zh: 'Data Processing',
       en: 'Data Processing'
     },
-    description: '处理、转换和分析数据',
+    description: 'Process, transform and analyze data',
     icon: '⚙️',
     color: 'purple'
   },
@@ -47,10 +46,10 @@ const CATEGORY_INFO: Omit<CategoryInfo, 'count'>[] = [
     category: AgentCategory.PUBLISH,
     name: 'PUBLISH',
     displayName: {
-      zh: '内容发布',
+      zh: 'Content Publishing',
       en: 'Content Publishing'
     },
-    description: '发布和分发处理后的内容',
+    description: 'Publish and distribute processed content',
     icon: '📤',
     color: 'green'
   },
@@ -58,10 +57,10 @@ const CATEGORY_INFO: Omit<CategoryInfo, 'count'>[] = [
     category: AgentCategory.VALIDATE,
     name: 'VALIDATE',
     displayName: {
-      zh: '验证监控',
+      zh: 'Validation & Monitoring',
       en: 'Validation & Monitoring'
     },
-    description: '验证质量和监控性能',
+    description: 'Validate quality and monitor performance',
     icon: '✅',
     color: 'orange'
   }
@@ -100,8 +99,7 @@ const COLOR_CLASSES = {
 
 export const CategorySelector: React.FC<CategorySelectorProps> = ({
   onSelect,
-  selectedCategory,
-  language = 'en'
+  selectedCategory
 }) => {
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,7 +123,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
       }
     } catch (error) {
       console.error('Failed to fetch category counts:', error);
-      // 使用默认值
+      // Use default values
       setCategories(CATEGORY_INFO.map(info => ({ ...info, count: 0 })));
     } finally {
       setLoading(false);
@@ -155,12 +153,10 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
     <div className="w-full">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-900 mb-2">
-          {language === 'zh' ? '选择Agent类型' : 'Select Agent Category'}
+          Select Agent Category
         </h2>
         <p className="text-gray-600">
-          {language === 'zh' 
-            ? '选择一个类别以查看可用的Agent类型' 
-            : 'Choose a category to view available agent types'}
+          Choose a category to view available agent types
         </p>
       </div>
 
@@ -174,7 +170,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               key={categoryInfo.category}
               role="button"
               tabIndex={0}
-              aria-label={`Select ${categoryInfo.displayName[language]} category`}
+              aria-label={`Select ${categoryInfo.displayName.en} category`}
               className={`
                 relative p-6 rounded-lg border-2 cursor-pointer
                 transition-all duration-200 transform hover:scale-105
@@ -184,7 +180,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
               onClick={() => handleCategoryClick(categoryInfo.category)}
               onKeyDown={(e) => handleKeyDown(e, categoryInfo.category)}
             >
-              {/* 可用类型数量徽章 */}
+              {/* Available types count badge */}
               <div className={`
                 absolute top-3 right-3 px-2 py-1 rounded-full text-xs font-semibold
                 ${colorClass.badge}
@@ -192,27 +188,27 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
                 {categoryInfo.count}
               </div>
 
-              {/* 图标 */}
+              {/* Icon */}
               <div className="text-4xl mb-3">
                 {categoryInfo.icon}
               </div>
 
-              {/* 名称 */}
+              {/* Name */}
               <h3 className={`text-lg font-bold mb-2 ${colorClass.text}`}>
-                {categoryInfo.displayName[language]}
+                {categoryInfo.displayName.en}
               </h3>
 
-              {/* 英文名称 */}
+              {/* Category code */}
               <div className="text-xs text-gray-500 mb-3 font-mono">
                 {categoryInfo.name}
               </div>
 
-              {/* 描述 */}
+              {/* Description */}
               <p className="text-sm text-gray-600 leading-relaxed">
                 {categoryInfo.description}
               </p>
 
-              {/* 选中指示器 */}
+              {/* Selected indicator */}
               {isSelected && (
                 <div className="absolute bottom-3 right-3">
                   <svg 
@@ -233,10 +229,10 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
         })}
       </div>
 
-      {/* 工作流程说明 */}
+      {/* Workflow explanation */}
       <div className="mt-8 p-4 bg-gray-50 rounded-lg border border-gray-200">
         <h4 className="text-sm font-semibold text-gray-700 mb-2">
-          {language === 'zh' ? '💡 工作流程' : '💡 Workflow'}
+          💡 Workflow
         </h4>
         <div className="flex items-center justify-between text-sm text-gray-600">
           <span className="flex items-center">
@@ -254,9 +250,7 @@ export const CategorySelector: React.FC<CategorySelectorProps> = ({
           <span className="text-orange-500 font-semibold">VALIDATE</span>
         </div>
         <p className="text-xs text-gray-500 mt-2">
-          {language === 'zh' 
-            ? 'Agent按照此顺序在工作流中协同工作' 
-            : 'Agents work together in workflows following this sequence'}
+          Agents work together in workflows following this sequence
         </p>
       </div>
     </div>

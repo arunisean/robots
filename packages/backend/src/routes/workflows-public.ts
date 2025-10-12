@@ -39,16 +39,17 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
         offset: query.offset ? parseInt(query.offset) : 0,
       };
 
-      // Use test user from seed data
-      const testUserId = '00000000-0000-0000-0000-000000000001';
-      const result = await workflowService.listWorkflows(testUserId, filters);
-      const workflows = result.workflows;
+      // For public API, use admin access to see all workflows
+      const result = await workflowService.listWorkflows('admin', { 
+        ...filters, 
+        isAdmin: true 
+      });
 
       return reply.send({
         success: true,
         data: {
-          workflows,
-          total: workflows.length,
+          workflows: result.workflows,
+          total: result.total,
           limit: filters.limit,
           offset: filters.offset,
         },
@@ -70,7 +71,8 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
     try {
       const { id } = request.params as any;
 
-      const workflow = await workflowService.getWorkflowById(id);
+      // For public API, directly access the repository without ownership checks
+      const workflow = await fastify.db.workflows.findById(id);
 
       if (!workflow) {
         return reply.status(404).send({
@@ -146,7 +148,8 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
       const { id } = request.params as any;
       const options = (request.body as ExecuteWorkflowDto) || {};
 
-      const workflow = await workflowService.getWorkflowById(id);
+      // For public API, directly access the repository without ownership checks
+      const workflow = await fastify.db.workflows.findById(id);
 
       if (!workflow) {
         return reply.status(404).send({
@@ -155,13 +158,11 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
         });
       }
 
-      // Execute workflow asynchronously
-      // Use test user from seed data
-      const testUserId = '00000000-0000-0000-0000-000000000001';
+      // Execute workflow asynchronously using the workflow's actual owner
       const execution = await workflowExecutor.executeWorkflow(
         workflow,
         options,
-        testUserId
+        workflow.ownerId
       );
 
       return reply.send({

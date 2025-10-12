@@ -3,7 +3,7 @@ import { useWalletConnect } from '../hooks/useWalletConnect';
 import { useAuth } from '../hooks/useAuth';
 import type { UseWalletReturn, UseAuthReturn, User } from '../types/web3';
 
-// 钱包上下文接口
+// Wallet context interface
 interface WalletContextValue {
   wallet: UseWalletReturn;
   auth: UseAuthReturn;
@@ -12,10 +12,10 @@ interface WalletContextValue {
   error: string | null;
 }
 
-// 创建上下文
+// Create context
 const WalletContext = createContext<WalletContextValue | null>(null);
 
-// 钱包提供者属性
+// Wallet provider props
 interface WalletProviderProps {
   children: ReactNode;
   autoConnect?: boolean;
@@ -23,11 +23,11 @@ interface WalletProviderProps {
   onError?: (error: string) => void;
 }
 
-// 钱包提供者组件
+// Wallet provider component
 export function WalletProvider({
   children,
   autoConnect = true,
-  supportedChains = [1, 11155111], // 以太坊主网和Sepolia测试网
+  supportedChains = [1, 11155111], // Ethereum mainnet and Sepolia testnet
   onError,
 }: WalletProviderProps) {
   const wallet = useWalletConnect();
@@ -35,17 +35,17 @@ export function WalletProvider({
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 初始化
+  // Initialize
   useEffect(() => {
     initializeProvider();
   }, []);
 
-  // 监听钱包连接状态变化
+  // Listen to wallet connection state changes
   useEffect(() => {
     if (wallet.wallet.isConnected && wallet.wallet.address) {
-      // 检查网络是否支持
+      // Check if network is supported
       if (wallet.wallet.chainId && !supportedChains.includes(wallet.wallet.chainId)) {
-        const errorMsg = `不支持的网络。请切换到支持的网络。`;
+        const errorMsg = `Unsupported network. Please switch to a supported network.`;
         setError(errorMsg);
         onError?.(errorMsg);
       } else {
@@ -54,7 +54,7 @@ export function WalletProvider({
     }
   }, [wallet.wallet.isConnected, wallet.wallet.chainId, supportedChains, onError]);
 
-  // 监听认证状态变化
+  // Listen to authentication state changes
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChange((event) => {
       switch (event.type) {
@@ -74,15 +74,15 @@ export function WalletProvider({
     return unsubscribe;
   }, [auth, onError]);
 
-  // 监听钱包事件
+  // Listen to wallet events
   useEffect(() => {
     const handleWalletError = (error: any) => {
-      const errorMsg = error.message || '钱包操作失败';
+      const errorMsg = error.message || 'Wallet operation failed';
       setError(errorMsg);
       onError?.(errorMsg);
     };
 
-    // 这里可以添加更多的钱包事件监听
+    // More wallet event listeners can be added here
     // wallet.addEventListener('error', handleWalletError);
 
     return () => {
@@ -90,29 +90,29 @@ export function WalletProvider({
     };
   }, [wallet, onError]);
 
-  // 初始化提供者
+  // Initialize provider
   const initializeProvider = async () => {
     try {
       setIsInitialized(false);
       setError(null);
 
-      // 如果启用自动连接，尝试恢复之前的连接
+      // If auto-connect is enabled, try to restore previous connection
       if (autoConnect) {
-        // 这里可以添加自动连接逻辑
-        // 例如检查本地存储中是否有之前的连接信息
+        // Auto-connect logic can be added here
+        // For example, check if there's previous connection info in local storage
       }
 
       setIsInitialized(true);
     } catch (error: any) {
       console.error('Failed to initialize wallet provider:', error);
-      const errorMsg = error.message || '初始化钱包提供者失败';
+      const errorMsg = error.message || 'Failed to initialize wallet provider';
       setError(errorMsg);
       onError?.(errorMsg);
-      setIsInitialized(true); // 即使失败也要设置为已初始化
+      setIsInitialized(true); // Set as initialized even if failed
     }
   };
 
-  // 上下文值
+  // Context value
   const contextValue: WalletContextValue = {
     wallet,
     auth,
@@ -128,7 +128,7 @@ export function WalletProvider({
   );
 }
 
-// 使用钱包上下文的Hook
+// Hook for using wallet context
 export function useWallet(): WalletContextValue {
   const context = useContext(WalletContext);
   
@@ -139,7 +139,7 @@ export function useWallet(): WalletContextValue {
   return context;
 }
 
-// 钱包状态指示器组件
+// Wallet status indicator component
 interface WalletStatusProps {
   className?: string;
   showDetails?: boolean;
@@ -152,7 +152,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <div className="w-2 h-2 bg-gray-400 rounded-full animate-pulse"></div>
-        <span className="text-sm text-gray-600">初始化中...</span>
+        <span className="text-sm text-gray-600">Initializing...</span>
       </div>
     );
   }
@@ -162,7 +162,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
       <div className={`flex items-center space-x-2 ${className}`}>
         <div className="w-2 h-2 bg-red-500 rounded-full"></div>
         <span className="text-sm text-red-600">
-          {showDetails ? error : '连接错误'}
+          {showDetails ? error : 'Connection Error'}
         </span>
       </div>
     );
@@ -172,7 +172,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-        <span className="text-sm text-gray-600">未连接</span>
+        <span className="text-sm text-gray-600">Not Connected</span>
       </div>
     );
   }
@@ -181,7 +181,7 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
     return (
       <div className={`flex items-center space-x-2 ${className}`}>
         <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
-        <span className="text-sm text-yellow-600">已连接，未认证</span>
+        <span className="text-sm text-yellow-600">Connected, Not Authenticated</span>
       </div>
     );
   }
@@ -191,15 +191,15 @@ export function WalletStatus({ className = '', showDetails = false }: WalletStat
       <div className="w-2 h-2 bg-green-500 rounded-full"></div>
       <span className="text-sm text-green-600">
         {showDetails && auth.auth.user ? 
-          `已认证 - ${auth.auth.user.walletAddress.slice(0, 6)}...${auth.auth.user.walletAddress.slice(-4)}` : 
-          '已认证'
+          `Authenticated - ${auth.auth.user.walletAddress.slice(0, 6)}...${auth.auth.user.walletAddress.slice(-4)}` : 
+          'Authenticated'
         }
       </span>
     </div>
   );
 }
 
-// 认证守卫组件
+// Authentication guard component
 interface AuthGuardProps {
   children: ReactNode;
   fallback?: ReactNode;
@@ -220,7 +220,7 @@ export function AuthGuard({
       <div className="flex items-center justify-center p-8">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">初始化中...</p>
+          <p className="text-gray-600">Initializing...</p>
         </div>
       </div>
     );
@@ -233,7 +233,7 @@ export function AuthGuard({
           <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          <p className="text-gray-600 mb-4">请先连接钱包</p>
+          <p className="text-gray-600 mb-4">Please connect your wallet first</p>
         </div>
       </div>
     );
@@ -246,7 +246,7 @@ export function AuthGuard({
           <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-gray-600 mb-4">请先完成身份认证</p>
+          <p className="text-gray-600 mb-4">Please complete authentication first</p>
         </div>
       </div>
     );
@@ -255,7 +255,7 @@ export function AuthGuard({
   return <>{children}</>;
 }
 
-// 网络切换组件
+// Network switcher component
 interface NetworkSwitcherProps {
   className?: string;
   supportedChains?: number[];
@@ -266,8 +266,8 @@ export function NetworkSwitcher({ className = '', supportedChains = [1, 11155111
   const [isLoading, setIsLoading] = useState(false);
 
   const chainNames: Record<number, string> = {
-    1: '以太坊主网',
-    11155111: 'Sepolia 测试网',
+    1: 'Ethereum Mainnet',
+    11155111: 'Sepolia Testnet',
     137: 'Polygon',
     80001: 'Polygon Mumbai',
   };
@@ -304,7 +304,7 @@ export function NetworkSwitcher({ className = '', supportedChains = [1, 11155111
       >
         {currentChainId && !supportedChains.includes(currentChainId) && (
           <option value={currentChainId}>
-            不支持的网络 ({currentChainId})
+            Unsupported Network ({currentChainId})
           </option>
         )}
         {supportedChains.map(chainId => (

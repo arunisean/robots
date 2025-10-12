@@ -95,10 +95,31 @@ export class WorkflowRepository {
     const query = 'SELECT * FROM workflows WHERE id = $1';
     
     try {
+      this.logger.debug(`Querying workflow with ID: ${id}`);
       const result = await this.pool.query(query, [id]);
-      return result.rows[0] ? this.mapRowToWorkflow(result.rows[0]) : null;
+      
+      if (result.rows.length === 0) {
+        this.logger.debug(`No workflow found with ID: ${id}`);
+        return null;
+      }
+
+      const row = result.rows[0];
+      this.logger.debug(`Found workflow row:`, {
+        id: row.id,
+        name: row.name,
+        status: row.status,
+        owner_id: row.owner_id
+      });
+
+      const workflow = this.mapRowToWorkflow(row);
+      this.logger.debug(`Successfully mapped workflow: ${workflow.id}`);
+      return workflow;
     } catch (error) {
-      this.logger.error(`Failed to find workflow ${id}:`, error);
+      this.logger.error(`Failed to find workflow ${id}:`, {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : undefined,
+        id
+      });
       throw error;
     }
   }
@@ -387,26 +408,26 @@ export class WorkflowRepository {
     return {
       id: row.id,
       name: row.name,
-      description: row.description,
-      version: row.version,
+      description: row.description || '',
+      version: row.version || '1.0.0',
       status: row.status as WorkflowStatus,
       definition: typeof row.definition === 'string' 
         ? JSON.parse(row.definition) 
         : row.definition,
       settings: typeof row.settings === 'string'
         ? JSON.parse(row.settings)
-        : row.settings,
+        : row.settings || {},
       metadata: typeof row.metadata === 'string'
         ? JSON.parse(row.metadata)
-        : row.metadata,
+        : row.metadata || {},
       ownerId: row.owner_id,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
-      lastExecutedAt: row.last_executed_at,
-      executionCount: row.execution_count,
-      successCount: row.success_count,
-      failureCount: row.failure_count,
-      avgExecutionTime: row.avg_execution_time
+      lastExecutedAt: row.last_executed_at || null,
+      executionCount: row.execution_count || 0,
+      successCount: row.success_count || 0,
+      failureCount: row.failure_count || 0,
+      avgExecutionTime: row.avg_execution_time || 0
     };
   }
 

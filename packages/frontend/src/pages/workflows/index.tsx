@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { workflowAPI } from '../../lib/api';
+import { Layout } from '../../components/Layout';
+import { AuthGuard } from '../../components/WalletProvider';
 
 /**
  * Workflow list and dashboard page
@@ -31,9 +33,16 @@ export default function WorkflowsPage() {
         filters.search = searchTerm;
       }
 
+      console.log('🔄 Loading workflows with filters:', filters);
       const response = await workflowAPI.list(filters);
-      setWorkflows(response.workflows || response || []);
+      console.log('📥 API response:', response);
+      
+      // API库已经返回了response.data，所以response就是工作流数组
+      const workflows = Array.isArray(response) ? response : [];
+      console.log('📋 Processed workflows:', workflows);
+      setWorkflows(workflows);
     } catch (err: any) {
+      console.error('❌ Error loading workflows:', err);
       setError(err.message || 'Failed to load workflows');
     } finally {
       setLoading(false);
@@ -74,7 +83,9 @@ export default function WorkflowsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <Layout title="Workflows - Multi-Agent Platform" requireAuth={true}>
+      <AuthGuard requireAuth={true} requireWallet={true}>
+        <div>
       {/* Header */}
       <div className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -261,7 +272,8 @@ export default function WorkflowsPage() {
             )}
           </>
         )}
-      </div>
-    </div>
+        </div>
+      </AuthGuard>
+    </Layout>
   );
 }

@@ -109,14 +109,14 @@ export function WalletConnectButton({
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          连接中...
+          Connecting...
         </>
       ) : (
         <>
           <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          连接钱包
+          Connect Wallet
         </>
       )}
     </button>
@@ -141,7 +141,7 @@ export function WalletConnectButton({
         onClick={handleDisconnect}
         disabled={isLoading}
         className="px-3 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors"
-        title="断开连接"
+        title="Disconnect"
       >
         <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -181,7 +181,7 @@ export function WalletConnectButton({
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
         <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
           <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">选择钱包</h3>
+            <h3 className="text-lg font-semibold">Select Wallet</h3>
             <button
               onClick={() => setShowWalletSelector(false)}
               className="text-gray-400 hover:text-gray-600"
@@ -205,16 +205,16 @@ export function WalletConnectButton({
                 </div>
                 
                 {wallet.installed ? (
-                  <span className="text-sm text-green-600">已安装</span>
+                  <span className="text-sm text-green-600">Installed</span>
                 ) : (
-                  <span className="text-sm text-blue-600">安装</span>
+                  <span className="text-sm text-blue-600">Install</span>
                 )}
               </button>
             ))}
           </div>
 
           <div className="mt-4 text-xs text-gray-500 text-center">
-            连接钱包即表示您同意我们的服务条款
+            By connecting your wallet, you agree to our Terms of Service
           </div>
         </div>
       </div>
@@ -235,7 +235,7 @@ export function WalletConnectButton({
           </svg>
           <div className="flex-1">
             <h4 className="text-sm font-medium text-red-800">
-              {errorInfo?.title || '连接错误'}
+              {errorInfo?.title || 'Connection Error'}
             </h4>
             <p className="text-sm text-red-700 mt-1">
               {errorInfo?.message || wallet.error.message}
@@ -255,7 +255,7 @@ export function WalletConnectButton({
                 onClick={() => handleConnect()}
                 className="text-sm text-red-600 hover:text-red-800 underline mt-1 ml-4"
               >
-                重试
+                Retry
               </button>
             )}
           </div>

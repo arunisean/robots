@@ -23,39 +23,37 @@ interface TypeSelectorProps {
   category: AgentCategory;
   onSelect: (typeId: string) => void;
   selectedTypeId?: string;
-  language?: 'zh' | 'en';
 }
 
 const COMPLEXITY_INFO = {
   easy: {
-    label: { zh: '简单', en: 'Easy' },
+    label: { zh: 'Easy', en: 'Easy' },
     color: 'text-green-600 bg-green-100',
     icon: '🟢'
   },
   medium: {
-    label: { zh: '中等', en: 'Medium' },
+    label: { zh: 'Medium', en: 'Medium' },
     color: 'text-yellow-600 bg-yellow-100',
     icon: '🟡'
   },
   hard: {
-    label: { zh: '困难', en: 'Hard' },
+    label: { zh: 'Hard', en: 'Hard' },
     color: 'text-red-600 bg-red-100',
     icon: '🔴'
   }
 };
 
 const STATUS_INFO = {
-  stable: { label: { zh: '稳定', en: 'Stable' }, color: 'text-green-600' },
-  beta: { label: { zh: '测试', en: 'Beta' }, color: 'text-blue-600' },
-  experimental: { label: { zh: '实验', en: 'Experimental' }, color: 'text-purple-600' },
-  deprecated: { label: { zh: '已弃用', en: 'Deprecated' }, color: 'text-gray-600' }
+  stable: { label: { zh: 'Stable', en: 'Stable' }, color: 'text-green-600' },
+  beta: { label: { zh: 'Beta', en: 'Beta' }, color: 'text-blue-600' },
+  experimental: { label: { zh: 'Experimental', en: 'Experimental' }, color: 'text-purple-600' },
+  deprecated: { label: { zh: 'Deprecated', en: 'Deprecated' }, color: 'text-gray-600' }
 };
 
 export const TypeSelector: React.FC<TypeSelectorProps> = ({
   category,
   onSelect,
-  selectedTypeId,
-  language = 'en'
+  selectedTypeId
 }) => {
   const [types, setTypes] = useState<AgentTypeSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -89,12 +87,12 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
   };
 
   const filteredTypes = types.filter(type => {
-    // 搜索过滤
+    // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       const matchesSearch = 
         type.name.toLowerCase().includes(query) ||
-        type.displayName.zh.toLowerCase().includes(query) ||
+        type.displayName.en.toLowerCase().includes(query) ||
         type.displayName.en.toLowerCase().includes(query) ||
         type.description.toLowerCase().includes(query) ||
         type.tags.some(tag => tag.toLowerCase().includes(query));
@@ -102,7 +100,7 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
       if (!matchesSearch) return false;
     }
 
-    // 复杂度过滤
+    // Complexity filter
     if (filterComplexity !== 'all' && type.complexity !== filterComplexity) {
       return false;
     }
@@ -123,12 +121,10 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
       <div className="text-center py-12">
         <div className="text-6xl mb-4">📭</div>
         <h3 className="text-lg font-semibold text-gray-900 mb-2">
-          {language === 'zh' ? '暂无可用类型' : 'No Types Available'}
+          No Types Available
         </h3>
         <p className="text-gray-600">
-          {language === 'zh' 
-            ? '此类别下暂时没有可用的Agent类型' 
-            : 'No agent types available in this category yet'}
+          No agent types available in this category yet
         </p>
       </div>
     );
@@ -136,14 +132,14 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
 
   return (
     <div className="w-full">
-      {/* 搜索和筛选栏 */}
+      {/* Search and filter bar */}
       <div className="mb-6 flex flex-col sm:flex-row gap-4">
-        {/* 搜索框 */}
+        {/* Search box */}
         <div className="flex-1">
           <div className="relative">
             <input
               type="text"
-              placeholder={language === 'zh' ? '搜索Agent类型...' : 'Search agent types...'}
+              placeholder="Search agent types..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -164,29 +160,27 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
           </div>
         </div>
 
-        {/* 复杂度筛选 */}
+        {/* Complexity filter */}
         <div className="sm:w-48">
           <select
             value={filterComplexity}
             onChange={(e) => setFilterComplexity(e.target.value)}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <option value="all">{language === 'zh' ? '所有难度' : 'All Levels'}</option>
-            <option value="easy">{COMPLEXITY_INFO.easy.label[language]}</option>
-            <option value="medium">{COMPLEXITY_INFO.medium.label[language]}</option>
-            <option value="hard">{COMPLEXITY_INFO.hard.label[language]}</option>
+            <option value="all">All Levels</option>
+            <option value="easy">{COMPLEXITY_INFO.easy.label.en}</option>
+            <option value="medium">{COMPLEXITY_INFO.medium.label.en}</option>
+            <option value="hard">{COMPLEXITY_INFO.hard.label.en}</option>
           </select>
         </div>
       </div>
 
-      {/* 结果统计 */}
+      {/* Results count */}
       <div className="mb-4 text-sm text-gray-600">
-        {language === 'zh' 
-          ? `找到 ${filteredTypes.length} 个Agent类型` 
-          : `Found ${filteredTypes.length} agent types`}
+        Found {filteredTypes.length} agent types
       </div>
 
-      {/* Agent类型网格 */}
+      {/* Agent types grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {filteredTypes.map((type) => {
           const isSelected = selectedTypeId === type.id;
@@ -214,26 +208,26 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
                 }
               }}
             >
-              {/* 图标和状态 */}
+              {/* Icon and status */}
               <div className="flex items-start justify-between mb-3">
                 <div className="text-3xl">{type.icon}</div>
                 <div className="flex flex-col items-end gap-1">
-                  {/* 复杂度标签 */}
+                  {/* Complexity label */}
                   <span className={`px-2 py-0.5 rounded text-xs font-semibold ${complexityInfo.color}`}>
-                    {complexityInfo.icon} {complexityInfo.label[language]}
+                    {complexityInfo.icon} {complexityInfo.label.en}
                   </span>
-                  {/* 状态标签 */}
+                  {/* Status label */}
                   {type.status !== 'stable' && (
                     <span className={`text-xs font-semibold ${statusInfo.color}`}>
-                      {statusInfo.label[language]}
+                      {statusInfo.label.en}
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* 名称 */}
+              {/* Name */}
               <h3 className="text-lg font-bold text-gray-900 mb-1">
-                {type.displayName[language]}
+                {type.displayName.en}
               </h3>
 
               {/* ID */}
@@ -241,12 +235,12 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
                 {type.id}
               </div>
 
-              {/* 描述 */}
+              {/* Description */}
               <p className="text-sm text-gray-600 mb-3 line-clamp-2">
                 {type.description}
               </p>
 
-              {/* 评分和使用量 */}
+              {/* Rating and popularity */}
               <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                 <div className="flex items-center">
                   <span className="text-yellow-500 mr-1">⭐</span>
@@ -258,7 +252,7 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
                 </div>
               </div>
 
-              {/* 标签 */}
+              {/* Tags */}
               {type.tags.length > 0 && (
                 <div className="flex flex-wrap gap-1">
                   {type.tags.slice(0, 3).map((tag, index) => (
@@ -277,7 +271,7 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
                 </div>
               )}
 
-              {/* 选中指示器 */}
+              {/* Selected indicator */}
               {isSelected && (
                 <div className="absolute top-3 right-3">
                   <svg 
@@ -294,11 +288,11 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
                 </div>
               )}
 
-              {/* 不可用遮罩 */}
+              {/* Unavailable overlay */}
               {!type.isAvailable && (
                 <div className="absolute inset-0 bg-gray-900 bg-opacity-50 rounded-lg flex items-center justify-center">
                   <span className="text-white font-semibold">
-                    {language === 'zh' ? '暂不可用' : 'Unavailable'}
+                    Unavailable
                   </span>
                 </div>
               )}
@@ -307,17 +301,15 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
         })}
       </div>
 
-      {/* 无搜索结果 */}
+      {/* No search results */}
       {filteredTypes.length === 0 && types.length > 0 && (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🔍</div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">
-            {language === 'zh' ? '未找到匹配的类型' : 'No Matching Types'}
+            No Matching Types
           </h3>
           <p className="text-gray-600">
-            {language === 'zh' 
-              ? '尝试调整搜索条件或筛选器' 
-              : 'Try adjusting your search or filters'}
+            Try adjusting your search or filters
           </p>
         </div>
       )}
