@@ -1,10 +1,66 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
 import { useWallet } from '../contexts/WalletContext';
 import { WalletConnection, WalletStatus, AuthGuard } from '../components/WalletConnection';
 
+interface AgentStats {
+  total: number;
+  byCategory: {
+    work: number;
+    process: number;
+    publish: number;
+    validate: number;
+  };
+}
+
+interface AgentTypeSummary {
+  id: string;
+  name: string;
+  displayName: { zh: string; en: string };
+  icon: string;
+  category: string;
+  complexity: string;
+  rating: number;
+  popularity: number;
+}
+
 export default function Home() {
   const { wallet, auth } = useWallet();
+  const [stats, setStats] = useState<AgentStats | null>(null);
+  const [featuredAgents, setFeaturedAgents] = useState<AgentTypeSummary[]>([]);
+
+  useEffect(() => {
+    fetchStats();
+    fetchFeaturedAgents();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      const response = await fetch('/api/agent-types/statistics');
+      const data = await response.json();
+      if (data.success) {
+        setStats(data.data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch stats:', error);
+    }
+  };
+
+  const fetchFeaturedAgents = async () => {
+    try {
+      const response = await fetch('/api/agent-types?summary=true');
+      const data = await response.json();
+      if (data.success) {
+        // Get top 6 agents by popularity
+        const sorted = data.data.sort((a: AgentTypeSummary, b: AgentTypeSummary) => b.popularity - a.popularity);
+        setFeaturedAgents(sorted.slice(0, 6));
+      }
+    } catch (error) {
+      console.error('Failed to fetch featured agents:', error);
+    }
+  };
+
   return (
     <div>
       <Head>
@@ -32,109 +88,119 @@ export default function Home() {
         <div className="container mx-auto px-4 py-8">
           <div className="text-center">
             <h2 className="text-4xl font-bold text-gray-900 mb-4">
-              基于Web3身份认证的去中心化Agent编排系统
+              智能Agent自动化平台
             </h2>
             <p className="text-xl text-gray-600 mb-8">
-              连接您的Web3钱包，开始使用强大的Agent自动化功能
+              {stats ? `${stats.total}个Agent类型` : '多种Agent类型'}，构建强大的自动化工作流
             </p>
             
-            {/* Agent功能介绍 */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mt-12">
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-3xl mb-4">📊</div>
-                <h3 className="text-lg font-semibold mb-2">Work Agents</h3>
-                <p className="text-gray-600">数据采集和抓取</p>
-                <ul className="text-sm text-gray-500 mt-2 text-left">
-                  <li>• 网页内容抓取</li>
-                  <li>• RSS数据收集</li>
-                  <li>• API数据获取</li>
-                </ul>
+            {/* 平台统计 */}
+            {stats && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12 max-w-4xl mx-auto">
+                <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                  <div className="text-3xl font-bold text-blue-600">{stats.byCategory.work}</div>
+                  <div className="text-sm text-blue-700 font-medium">数据收集</div>
+                </div>
+                <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                  <div className="text-3xl font-bold text-purple-600">{stats.byCategory.process}</div>
+                  <div className="text-sm text-purple-700 font-medium">数据处理</div>
+                </div>
+                <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                  <div className="text-3xl font-bold text-green-600">{stats.byCategory.publish}</div>
+                  <div className="text-sm text-green-700 font-medium">内容发布</div>
+                </div>
+                <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                  <div className="text-3xl font-bold text-orange-600">{stats.byCategory.validate}</div>
+                  <div className="text-sm text-orange-700 font-medium">质量验证</div>
+                </div>
               </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-3xl mb-4">⚙️</div>
-                <h3 className="text-lg font-semibold mb-2">Process Agents</h3>
-                <p className="text-gray-600">数据处理和转换</p>
-                <ul className="text-sm text-gray-500 mt-2 text-left">
-                  <li>• 文本处理分析</li>
-                  <li>• AI内容生成</li>
-                  <li>• 数据格式转换</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-3xl mb-4">📤</div>
-                <h3 className="text-lg font-semibold mb-2">Publish Agents</h3>
-                <p className="text-gray-600">内容发布和分发</p>
-                <ul className="text-sm text-gray-500 mt-2 text-left">
-                  <li>• 社交媒体发布</li>
-                  <li>• 网站内容更新</li>
-                  <li>• 多平台分发</li>
-                </ul>
-              </div>
-              
-              <div className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition-shadow">
-                <div className="text-3xl mb-4">🔍</div>
-                <h3 className="text-lg font-semibold mb-2">Validate Agents</h3>
-                <p className="text-gray-600">质量验证和监控</p>
-                <ul className="text-sm text-gray-500 mt-2 text-left">
-                  <li>• 性能监控</li>
-                  <li>• 质量评估</li>
-                  <li>• 安全检查</li>
-                </ul>
-              </div>
-            </div>
+            )}
 
-            {/* 认证后的功能区域 */}
-            <AuthGuard 
-              requireWallet={true} 
-              requireAuth={true}
-              fallback={
-                <div className="mt-12 p-8 bg-blue-50 rounded-lg border border-blue-200">
-                  <h3 className="text-xl font-semibold text-blue-900 mb-4">
-                    开始使用多Agent自动化平台
+            {/* 热门Agent展示 */}
+            {featuredAgents.length > 0 && (
+              <div className="mt-12">
+                <div className="flex items-center justify-between mb-6">
+                  <h3 className="text-2xl font-bold text-gray-900">🔥 热门Agent</h3>
+                  <Link href="/agent-types" className="text-blue-600 hover:text-blue-800 font-medium">
+                    查看全部 →
+                  </Link>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {featuredAgents.map((agent) => (
+                    <div key={agent.id} className="bg-white p-5 rounded-lg shadow hover:shadow-lg transition-shadow border border-gray-200">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="text-3xl">{agent.icon}</div>
+                        <div className="flex items-center text-sm text-gray-500">
+                          <span className="text-yellow-500 mr-1">⭐</span>
+                          <span>{agent.rating}</span>
+                        </div>
+                      </div>
+                      <h4 className="font-semibold text-gray-900 mb-1">{agent.displayName.zh}</h4>
+                      <p className="text-xs text-gray-500 font-mono mb-2">{agent.id}</p>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs px-2 py-1 bg-blue-100 text-blue-700 rounded">
+                          {agent.category.toUpperCase()}
+                        </span>
+                        <span className="text-xs text-gray-500">👥 {agent.popularity}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* 快速开始 */}
+            <div className="mt-12">
+              <AuthGuard 
+                requireWallet={true} 
+                requireAuth={true}
+                fallback={
+                  <div className="p-8 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-blue-200">
+                    <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                      🚀 开始使用
+                    </h3>
+                    <p className="text-gray-700 mb-6">
+                      连接Web3钱包，立即体验智能Agent自动化
+                    </p>
+                    <div className="flex justify-center space-x-4 flex-wrap gap-3">
+                      <WalletConnection size="lg" />
+                      <Link
+                        href="/agent-types"
+                        className="inline-flex items-center px-6 py-3 text-lg font-medium text-blue-600 bg-white border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
+                      >
+                        🤖 浏览Agent
+                      </Link>
+                      <Link
+                        href="/workflows"
+                        className="inline-flex items-center px-6 py-3 text-lg font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                      >
+                        📋 查看工作流
+                      </Link>
+                    </div>
+                  </div>
+                }
+              >
+                <div className="p-8 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                  <h3 className="text-2xl font-semibold text-gray-900 mb-4">
+                    ✨ 开始创建您的自动化工作流
                   </h3>
-                  <p className="text-blue-700 mb-6">
-                    请连接您的Web3钱包并完成身份认证，即可访问所有Agent功能
+                  <p className="text-gray-700 mb-6">
+                    选择Agent类型，配置参数，构建强大的自动化流程
                   </p>
-                  <div className="flex justify-center space-x-4 flex-wrap gap-2">
-                    <WalletConnection size="lg" />
-                    <a
-                      href="/test-api"
-                      className="inline-flex items-center px-6 py-3 text-lg font-medium text-blue-600 bg-white border border-blue-600 rounded-lg hover:bg-blue-50 transition-colors"
-                    >
-                      🧪 测试API
-                    </a>
-                    <a
-                      href="/workflows"
-                      className="inline-flex items-center px-6 py-3 text-lg font-medium text-green-600 bg-white border border-green-600 rounded-lg hover:bg-green-50 transition-colors"
-                    >
-                      📋 工作流
-                    </a>
+                  <div className="flex justify-center space-x-4 flex-wrap gap-3">
+                    <Link href="/workflows/new" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg">
+                      ➕ 创建工作流
+                    </Link>
+                    <Link href="/agent-types" className="bg-white hover:bg-gray-50 text-blue-600 border-2 border-blue-600 font-bold py-3 px-8 rounded-lg transition-colors">
+                      🤖 浏览Agent
+                    </Link>
+                    <Link href="/workflows" className="bg-white hover:bg-gray-50 text-gray-700 border border-gray-300 font-bold py-3 px-8 rounded-lg transition-colors">
+                      📋 我的工作流
+                    </Link>
                   </div>
                 </div>
-              }
-            >
-              <div className="mt-12 p-8 bg-green-50 rounded-lg border border-green-200">
-                <h3 className="text-xl font-semibold text-green-900 mb-4">
-                  🎉 欢迎使用多Agent自动化平台！
-                </h3>
-                <p className="text-green-700 mb-6">
-                  您已成功连接钱包并完成身份认证，现在可以开始创建和管理您的Agent了。
-                </p>
-                <div className="flex justify-center space-x-4 flex-wrap gap-2">
-                  <a href="/workflows" className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                    📋 工作流管理
-                  </a>
-                  <a href="/test-api" className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
-                    🧪 API测试
-                  </a>
-                  <button className="bg-white hover:bg-green-50 text-green-600 border border-green-600 font-bold py-3 px-6 rounded-lg transition-colors">
-                    浏览Agent市场
-                  </button>
-                </div>
-              </div>
-            </AuthGuard>
+              </AuthGuard>
+            </div>
 
             {/* 特性介绍 */}
             <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8">
