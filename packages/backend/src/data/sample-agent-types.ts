@@ -150,8 +150,7 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
       examples: [
         {
           title: '基础网页抓取',
-          description: '抓取单个网页的标题和内容',
-          scenario: '简单数据提取',
+          description: '抓取单个网页的标题和内容（适用场景：简单数据提取）',
           language: 'json',
           code: JSON.stringify({
             name: '新闻抓取器',
