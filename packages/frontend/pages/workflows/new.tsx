@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import { AgentCategory } from '@multi-agent-platform/shared';
 import { workflowAuthAPI } from '../../lib/api-auth';
 import { useWallet } from '../../contexts/WalletContext';
 import { WalletConnection, AuthGuard } from '../../components/WalletConnection';
+import CategorySelector from '../src/components/agent-types/CategorySelector';
+import TypeSelector from '../src/components/agent-types/TypeSelector';
+import { NoCodeConfigPanel } from '../src/components/agent-config';
 
 /**
  * Create new workflow page
  */
 export default function NewWorkflowPage() {
   const router = useRouter();
-  const { auth } = useWallet();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [step, setStep] = useState<'basic' | 'agents'>('basic');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -20,96 +24,17 @@ export default function NewWorkflowPage() {
     status: 'draft',
   });
 
-  const [agents, setAgents] = useState<any[]>([
-    {
-      id: 'agent-1',
-      agentType: 'work',
-      agentCategory: 'work',
-      config: {},
-      order: 0,
-    },
-  ]);
-
-  // Workflow templates
-  const templates = {
-    empty: {
-      name: '空白工作流',
-      description: '从头开始创建',
-      agents: [
-        {
-          id: 'agent-1',
-          agentType: 'work',
-          agentCategory: 'work',
-          config: {},
-          order: 0,
-        },
-      ],
-    },
-    contentPipeline: {
-      name: '内容生成流水线',
-      description: '数据采集 → 内容生成 → 发布',
-      agents: [
-        {
-          id: 'work-1',
-          agentType: 'web_scraper',
-          agentCategory: 'work',
-          config: { url: 'https://example.com' },
-          order: 0,
-        },
-        {
-          id: 'process-1',
-          agentType: 'content_generator',
-          agentCategory: 'process',
-          config: { model: 'gpt-4' },
-          order: 1,
-        },
-        {
-          id: 'publish-1',
-          agentType: 'twitter',
-          agentCategory: 'publish',
-          config: { platform: 'twitter' },
-          order: 2,
-        },
-      ],
-    },
-    dataAnalysis: {
-      name: '数据分析工作流',
-      description: '数据采集 → 数据处理 → 质量验证',
-      agents: [
-        {
-          id: 'work-1',
-          agentType: 'api_collector',
-          agentCategory: 'work',
-          config: { endpoint: 'https://api.example.com' },
-          order: 0,
-        },
-        {
-          id: 'process-1',
-          agentType: 'data_transformer',
-          agentCategory: 'process',
-          config: { format: 'json' },
-          order: 1,
-        },
-        {
-          id: 'validate-1',
-          agentType: 'quality_assessor',
-          agentCategory: 'validate',
-          config: { threshold: 0.8 },
-          order: 2,
-        },
-      ],
-    },
-  };
-
-  const loadTemplate = (templateKey: keyof typeof templates) => {
-    const template = templates[templateKey];
-    setFormData({
-      ...formData,
-      name: template.name,
-      description: template.description,
-    });
-    setAgents(template.agents);
-  };
+  const [agents, setAgents] = useState<any[]>([]);
+  
+  // Agent selection state
+  const [showAgentSelector, setShowAgentSelector] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<AgentCategory | undefined>();
+  const [editingAgentIndex, setEditingAgentIndex] = useState<number | null>(null);
+  
+  // Agent configuration state
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [configuringAgentIndex, setConfiguringAgentIndex] = useState<number | null>(null);
+  const [agentTypeDetails, setAgentTypeDetails] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -174,22 +99,50 @@ export default function NewWorkflowPage() {
     }
   };
 
-  const addAgent = () => {
-    const newAgent = {
-      id: `agent-${agents.length + 1}`,
-      agentType: 'process',
-      agentCategory: 'process',
-      config: {},
-      order: agents.length,
-    };
-    setAgents([...agents, newAgent]);
+  const openAgentSelector = (index: number | null = null) => {
+    setEditingAgentIndex(index);
+    setSelectedCategory(undefined);
+    setShowAgentSelector(true);
+  };
+
+  const handleAgentTypeSelect = async (typeId: string) => {
+    try {
+      // Fetch agent type details
+      const response = await fetch(`/api/agent-types/${typeId}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        const agentType = data.data;
+        const newAgent = {
+          id: `agent-${Date.now()}`,
+          agentType: typeId,
+          agentCategory: agentType.category.toLowerCase(),
+          name: agentType.displayName.zh,
+          config: agentType.defaultConfig || {},
+          order: editingAgentIndex !== null ? editingAgentIndex : agents.length,
+        };
+
+        if (editingAgentIndex !== null) {
+          // Update existing agent
+          const updated = [...agents];
+          updated[editingAgentIndex] = newAgent;
+          setAgents(updated);
+        } else {
+          // Add new agent
+          setAgents([...agents, newAgent]);
+        }
+
+        setShowAgentSelector(false);
+        setSelectedCategory(undefined);
+        setEditingAgentIndex(null);
+      }
+    } catch (err) {
+      console.error('Failed to fetch agent type:', err);
+      setError('Failed to load agent type details');
+    }
   };
 
   const removeAgent = (index: number) => {
-    if (agents.length === 1) {
-      setError('At least one agent is required');
-      return;
-    }
     setAgents(agents.filter((_, i) => i !== index));
   };
 
@@ -197,6 +150,66 @@ export default function NewWorkflowPage() {
     const updated = [...agents];
     updated[index] = { ...updated[index], [field]: value };
     setAgents(updated);
+  };
+
+  const moveAgent = (index: number, direction: 'up' | 'down') => {
+    if (
+      (direction === 'up' && index === 0) ||
+      (direction === 'down' && index === agents.length - 1)
+    ) {
+      return;
+    }
+
+    const newIndex = direction === 'up' ? index - 1 : index + 1;
+    const updated = [...agents];
+    [updated[index], updated[newIndex]] = [updated[newIndex], updated[index]];
+    updated.forEach((agent, i) => {
+      agent.order = i;
+    });
+    setAgents(updated);
+  };
+
+  // Open config panel for agent
+  const openConfigPanel = async (index: number) => {
+    const agent = agents[index];
+    try {
+      // Fetch agent type details including schema
+      const response = await fetch(`/api/agent-types/${agent.agentType}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAgentTypeDetails(data.data);
+        setConfiguringAgentIndex(index);
+        setShowConfigPanel(true);
+      } else {
+        setError('Failed to load agent type details');
+      }
+    } catch (err) {
+      console.error('Failed to fetch agent type details:', err);
+      setError('Failed to load agent type details');
+    }
+  };
+
+  // Save agent configuration
+  const handleConfigSave = (config: Record<string, any>) => {
+    if (configuringAgentIndex !== null) {
+      const updated = [...agents];
+      updated[configuringAgentIndex] = {
+        ...updated[configuringAgentIndex],
+        config,
+      };
+      setAgents(updated);
+    }
+    setShowConfigPanel(false);
+    setConfiguringAgentIndex(null);
+    setAgentTypeDetails(null);
+  };
+
+  // Cancel agent configuration
+  const handleConfigCancel = () => {
+    setShowConfigPanel(false);
+    setConfiguringAgentIndex(null);
+    setAgentTypeDetails(null);
   };
 
   return (
@@ -239,43 +252,9 @@ export default function NewWorkflowPage() {
             </div>
           )}
 
-          {/* Template Selection */}
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">选择模板</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <button
-                type="button"
-                onClick={() => loadTemplate('empty')}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left"
-              >
-                <div className="text-2xl mb-2">📄</div>
-                <div className="font-semibold text-gray-900">空白工作流</div>
-                <div className="text-sm text-gray-500 mt-1">从头开始创建</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => loadTemplate('contentPipeline')}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left"
-              >
-                <div className="text-2xl mb-2">📝</div>
-                <div className="font-semibold text-gray-900">内容生成流水线</div>
-                <div className="text-sm text-gray-500 mt-1">采集 → 生成 → 发布</div>
-              </button>
-              <button
-                type="button"
-                onClick={() => loadTemplate('dataAnalysis')}
-                className="p-4 border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition text-left"
-              >
-                <div className="text-2xl mb-2">📊</div>
-                <div className="font-semibold text-gray-900">数据分析工作流</div>
-                <div className="text-sm text-gray-500 mt-1">采集 → 处理 → 验证</div>
-              </button>
-            </div>
-          </div>
-
           {/* Basic Info */}
           <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold mb-4">基本信息</h2>
+            <h2 className="text-xl font-semibold mb-4">Basic Information</h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -333,103 +312,127 @@ export default function NewWorkflowPage() {
               <h2 className="text-xl font-semibold">Agents</h2>
               <button
                 type="button"
-                onClick={addAgent}
+                onClick={() => openAgentSelector(null)}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
               >
                 + Add Agent
               </button>
             </div>
 
-            <div className="space-y-4">
-              {agents.map((agent, index) => (
-                <div
-                  key={agent.id}
-                  className="border border-gray-200 rounded-lg p-4"
+            {agents.length === 0 ? (
+              <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                <div className="text-6xl mb-4">🤖</div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  No Agents Yet
+                </h3>
+                <p className="text-gray-600 mb-4">
+                  Add agents to build your automation workflow
+                </p>
+                <button
+                  type="button"
+                  onClick={() => openAgentSelector(null)}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
                 >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-lg font-semibold text-gray-700">
-                        {index + 1}.
-                      </span>
-                      <div className="text-sm text-gray-500">
-                        Order: {agent.order}
+                  Add First Agent
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {agents.map((agent, index) => (
+                  <div
+                    key={agent.id}
+                    className="border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center space-x-3">
+                        <span className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-700 rounded-full font-semibold">
+                          {index + 1}
+                        </span>
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {agent.name || agent.agentType}
+                          </h4>
+                          <p className="text-sm text-gray-500 font-mono">
+                            {agent.agentType}
+                          </p>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        {/* Move buttons */}
+                        <button
+                          type="button"
+                          onClick={() => moveAgent(index, 'up')}
+                          disabled={index === 0}
+                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                          title="Move up"
+                        >
+                          ↑
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => moveAgent(index, 'down')}
+                          disabled={index === agents.length - 1}
+                          className="p-1 text-gray-400 hover:text-gray-600 disabled:opacity-30"
+                          title="Move down"
+                        >
+                          ↓
+                        </button>
+                        {/* Configure button */}
+                        <button
+                          type="button"
+                          onClick={() => openConfigPanel(index)}
+                          className="px-3 py-1 text-sm text-green-600 hover:text-green-800 font-medium"
+                        >
+                          ⚙️ Configure
+                        </button>
+                        {/* Edit button */}
+                        <button
+                          type="button"
+                          onClick={() => openAgentSelector(index)}
+                          className="px-3 py-1 text-sm text-blue-600 hover:text-blue-800"
+                        >
+                          Change
+                        </button>
+                        {/* Remove button */}
+                        <button
+                          type="button"
+                          onClick={() => removeAgent(index)}
+                          className="px-3 py-1 text-sm text-red-600 hover:text-red-800"
+                        >
+                          Remove
+                        </button>
                       </div>
                     </div>
-                    {agents.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeAgent(index)}
-                        className="text-red-600 hover:text-red-800"
-                      >
-                        Remove
-                      </button>
-                    )}
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Agent Type
-                      </label>
-                      <input
-                        type="text"
-                        value={agent.agentType}
-                        onChange={(e) =>
-                          updateAgent(index, 'agentType', e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                        placeholder="e.g., DataCollector"
-                      />
+                    {/* Category badge */}
+                    <div className="mb-3">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {agent.agentCategory.toUpperCase()}
+                      </span>
                     </div>
 
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Category
-                      </label>
-                      <select
-                        value={agent.agentCategory}
-                        onChange={(e) =>
-                          updateAgent(index, 'agentCategory', e.target.value)
-                        }
-                        className="w-full px-3 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      >
-                        <option value="work">Work (Data Collection)</option>
-                        <option value="process">Process (Transformation)</option>
-                        <option value="publish">Publish (Distribution)</option>
-                        <option value="validate">Validate (Quality Check)</option>
-                      </select>
-                    </div>
+                    {/* Config preview */}
+                    <details className="mt-3">
+                      <summary className="cursor-pointer text-sm text-gray-600 hover:text-gray-900">
+                        View Configuration
+                      </summary>
+                      <pre className="mt-2 p-3 bg-gray-50 rounded text-xs overflow-x-auto">
+                        {JSON.stringify(agent.config, null, 2)}
+                      </pre>
+                    </details>
                   </div>
+                ))}
+              </div>
+            )}
 
-                  <div className="mt-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Configuration (JSON)
-                    </label>
-                    <textarea
-                      value={JSON.stringify(agent.config, null, 2)}
-                      onChange={(e) => {
-                        try {
-                          const config = JSON.parse(e.target.value);
-                          updateAgent(index, 'config', config);
-                        } catch (err) {
-                          // Invalid JSON, ignore
-                        }
-                      }}
-                      rows={4}
-                      className="w-full px-3 py-2 border border-gray-300 rounded font-mono text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                      placeholder='{"key": "value"}'
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
-              <p className="text-sm text-blue-800">
-                💡 Agents will be executed in the order shown above. Data flows
-                from one agent to the next.
-              </p>
-            </div>
+            {agents.length > 0 && (
+              <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded">
+                <p className="text-sm text-blue-800">
+                  💡 Agents will be executed in the order shown above (1 → {agents.length}). 
+                  Data flows from one agent to the next.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Actions */}
@@ -442,7 +445,7 @@ export default function NewWorkflowPage() {
             </Link>
             <button
               type="submit"
-              disabled={saving}
+              disabled={saving || agents.length === 0}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? 'Creating...' : 'Create Workflow'}
@@ -451,6 +454,83 @@ export default function NewWorkflowPage() {
         </form>
         </AuthGuard>
       </div>
+
+      {/* Agent Selector Modal */}
+      {showAgentSelector && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg shadow-xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between">
+              <h2 className="text-2xl font-bold text-gray-900">
+                {editingAgentIndex !== null ? 'Change Agent Type' : 'Select Agent Type'}
+              </h2>
+              <button
+                onClick={() => {
+                  setShowAgentSelector(false);
+                  setSelectedCategory(undefined);
+                  setEditingAgentIndex(null);
+                }}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="p-6">
+              {!selectedCategory ? (
+                <>
+                  <CategorySelector
+                    onSelect={setSelectedCategory}
+                    selectedCategory={selectedCategory}
+                    language="zh"
+                  />
+                  <div className="mt-4 text-center">
+                    <button
+                      onClick={() => {
+                        setShowAgentSelector(false);
+                        setSelectedCategory(undefined);
+                      }}
+                      className="px-4 py-2 text-gray-600 hover:text-gray-900"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="mb-4">
+                    <button
+                      onClick={() => setSelectedCategory(undefined)}
+                      className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                    >
+                      ← Back to Categories
+                    </button>
+                  </div>
+                  <TypeSelector
+                    category={selectedCategory}
+                    onSelect={handleAgentTypeSelect}
+                    language="zh"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Agent Config Panel */}
+      {showConfigPanel && agentTypeDetails && configuringAgentIndex !== null && (
+        <NoCodeConfigPanel
+          agentTypeId={agentTypeDetails.id}
+          agentTypeName={agentTypeDetails.displayName.zh}
+          configSchema={agentTypeDetails.configSchema}
+          initialConfig={agents[configuringAgentIndex].config}
+          onSave={handleConfigSave}
+          onCancel={handleConfigCancel}
+          language="zh"
+        />
+      )}
     </div>
   );
 }
