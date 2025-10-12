@@ -35,7 +35,10 @@ export default function WorkflowsPage() {
       }
 
       const response = await workflowAuthAPI.list(filters);
-      setWorkflows(response.workflows || []);
+      console.log('📥 Workflows API response:', response);
+      console.log('📥 Response type:', typeof response, 'Is array:', Array.isArray(response));
+      // fetchWithAuth auto-unwraps { success: true, data: [...] } to just [...]
+      setWorkflows(Array.isArray(response) ? response : []);
     } catch (err: any) {
       setError(err.message || 'Failed to load workflows');
     } finally {
