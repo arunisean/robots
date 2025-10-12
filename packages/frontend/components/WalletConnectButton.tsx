@@ -1,8 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useWalletConnect } from '../hooks/useWalletConnect';
 import { useAuth } from '../hooks/useAuth';
-import { WalletType, ERROR_MESSAGES, formatAddress, SUPPORTED_WALLETS } from '../config/web3';
-import type { WalletInfo } from '../config/web3';
+import { WalletType, ERROR_MESSAGES, formatAddress, SUPPORTED_WALLETS } from '../src/config/web3';
+import type { WalletInfo } from '../src/config/web3';
 
 interface WalletConnectButtonProps {
   className?: string;
