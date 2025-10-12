@@ -483,7 +483,7 @@ export default function NewWorkflowPage() {
                   <CategorySelector
                     onSelect={setSelectedCategory}
                     selectedCategory={selectedCategory}
-                    language="zh"
+                    language="en"
                   />
                   <div className="mt-4 text-center">
                     <button
@@ -510,7 +510,7 @@ export default function NewWorkflowPage() {
                   <TypeSelector
                     category={selectedCategory}
                     onSelect={handleAgentTypeSelect}
-                    language="zh"
+                    language="en"
                   />
                 </>
               )}
@@ -523,12 +523,12 @@ export default function NewWorkflowPage() {
       {showConfigPanel && agentTypeDetails && configuringAgentIndex !== null && (
         <NoCodeConfigPanel
           agentTypeId={agentTypeDetails.id}
-          agentTypeName={agentTypeDetails.displayName.zh}
+          agentTypeName={agentTypeDetails.displayName.en}
           configSchema={agentTypeDetails.configSchema}
           initialConfig={agents[configuringAgentIndex].config}
           onSave={handleConfigSave}
           onCancel={handleConfigCancel}
-          language="zh"
+          language="en"
         />
       )}
     </div>

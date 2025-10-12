@@ -184,16 +184,16 @@ export class Validator {
     params?: Record<string, any>
   ): string {
     const messages: Record<string, string> = {
-      required: '此字段为必填项',
-      pattern: '格式不正确',
-      minLength: `长度不能少于 ${params?.min} 个字符`,
-      maxLength: `长度不能超过 ${params?.max} 个字符`,
-      minimum: `值不能小于 ${params?.min}`,
-      maximum: `值不能大于 ${params?.max}`,
+      required: 'This field is required',
+      pattern: 'Invalid format',
+      minLength: `Must be at least ${params?.min} characters`,
+      maxLength: `Must be at most ${params?.max} characters`,
+      minimum: `Must be at least ${params?.min}`,
+      maximum: `Must be at most ${params?.max}`,
       format: this.getFormatErrorMessage(params?.format),
     };
 
-    return messages[type] || '验证失败';
+    return messages[type] || 'Validation failed';
   }
 
   /**
@@ -201,12 +201,12 @@ export class Validator {
    */
   private static getFormatErrorMessage(format?: string): string {
     const messages: Record<string, string> = {
-      uri: '请输入有效的URL地址',
-      url: '请输入有效的URL地址',
-      email: '请输入有效的邮箱地址',
-      date: '请输入有效的日期',
+      uri: 'Please enter a valid URL',
+      url: 'Please enter a valid URL',
+      email: 'Please enter a valid email address',
+      date: 'Please enter a valid date',
     };
-    return messages[format || ''] || '格式不正确';
+    return messages[format || ''] || 'Invalid format';
   }
 
   /**

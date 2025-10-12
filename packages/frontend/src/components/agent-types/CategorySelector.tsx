@@ -101,7 +101,7 @@ const COLOR_CLASSES = {
 export const CategorySelector: React.FC<CategorySelectorProps> = ({
   onSelect,
   selectedCategory,
-  language = 'zh'
+  language = 'en'
 }) => {
   const [categories, setCategories] = useState<CategoryInfo[]>([]);
   const [loading, setLoading] = useState(true);

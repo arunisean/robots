@@ -20,7 +20,7 @@ export const NoCodeConfigPanel: React.FC<NoCodeConfigPanelProps> = ({
   initialConfig = {},
   onSave,
   onCancel,
-  language = 'zh',
+  language = 'en',
 }) => {
   // Parse schema into form structure
   const formStructure = useMemo(() => {
@@ -161,7 +161,7 @@ export const NoCodeConfigPanel: React.FC<NoCodeConfigPanelProps> = ({
         <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between rounded-t-lg">
           <div>
             <h2 className="text-2xl font-bold text-gray-900">
-              {language === 'zh' ? 'Agent配置' : 'Agent Configuration'}
+              Agent Configuration
             </h2>
             <p className="text-sm text-gray-500 mt-1">{agentTypeName}</p>
           </div>
@@ -215,7 +215,7 @@ export const NoCodeConfigPanel: React.FC<NoCodeConfigPanelProps> = ({
             onClick={handleReset}
             className="px-4 py-2 text-gray-600 hover:text-gray-900 transition"
           >
-            {language === 'zh' ? '重置' : 'Reset'}
+            Reset
           </button>
           <div className="flex items-center space-x-3">
             <button
@@ -223,7 +223,7 @@ export const NoCodeConfigPanel: React.FC<NoCodeConfigPanelProps> = ({
               onClick={handleCancel}
               className="px-6 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition"
             >
-              {language === 'zh' ? '取消' : 'Cancel'}
+              Cancel
             </button>
             <button
               type="button"
@@ -232,15 +232,9 @@ export const NoCodeConfigPanel: React.FC<NoCodeConfigPanelProps> = ({
               className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSaving
-                ? language === 'zh'
-                  ? '保存中...'
-                  : 'Saving...'
+                ? 'Saving...'
                 : isValidating
-                ? language === 'zh'
-                  ? '验证中...'
-                  : 'Validating...'
-                : language === 'zh'
-                ? '保存'
+                ? 'Validating...'
                 : 'Save'}
             </button>
           </div>

@@ -173,10 +173,10 @@ export class SchemaParser {
    */
   private static formatGroupName(groupId: string): string {
     const names: Record<string, string> = {
-      basic: '基本配置',
-      advanced: '高级配置',
-      schedule: '执行计划',
-      default: '配置',
+      basic: 'Basic Configuration',
+      advanced: 'Advanced Configuration',
+      schedule: 'Schedule',
+      default: 'Configuration',
     };
     return names[groupId] || this.formatTitle(groupId);
   }

@@ -55,7 +55,7 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
   category,
   onSelect,
   selectedTypeId,
-  language = 'zh'
+  language = 'en'
 }) => {
   const [types, setTypes] = useState<AgentTypeSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,11 +69,17 @@ export const TypeSelector: React.FC<TypeSelectorProps> = ({
   const fetchTypes = async () => {
     setLoading(true);
     try {
+      console.log(`Fetching agent types for category: ${category}`);
       const response = await fetch(`/api/agent-types/categories/${category}?summary=true`);
+      console.log('Response status:', response.status);
       const data = await response.json();
+      console.log('Response data:', data);
       
       if (data.success) {
+        console.log(`Found ${data.data.length} agent types`);
         setTypes(data.data);
+      } else {
+        console.error('API returned success=false:', data);
       }
     } catch (error) {
       console.error('Failed to fetch agent types:', error);
