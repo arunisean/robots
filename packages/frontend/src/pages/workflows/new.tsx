@@ -5,6 +5,7 @@ import { AgentCategory } from '@multi-agent-platform/shared';
 import { workflowAPI } from '../../lib/api';
 import CategorySelector from '../../components/agent-types/CategorySelector';
 import TypeSelector from '../../components/agent-types/TypeSelector';
+import { NoCodeConfigPanel } from '../../components/agent-config';
 
 /**
  * Create new workflow page
@@ -27,6 +28,11 @@ export default function NewWorkflowPage() {
   const [showAgentSelector, setShowAgentSelector] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | undefined>();
   const [editingAgentIndex, setEditingAgentIndex] = useState<number | null>(null);
+  
+  // Agent configuration state
+  const [showConfigPanel, setShowConfigPanel] = useState(false);
+  const [configuringAgentIndex, setConfiguringAgentIndex] = useState<number | null>(null);
+  const [agentTypeDetails, setAgentTypeDetails] = useState<any>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -159,6 +165,49 @@ export default function NewWorkflowPage() {
       agent.order = i;
     });
     setAgents(updated);
+  };
+
+  // Open config panel for agent
+  const openConfigPanel = async (index: number) => {
+    const agent = agents[index];
+    try {
+      // Fetch agent type details including schema
+      const response = await fetch(`/api/agent-types/${agent.agentType}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        setAgentTypeDetails(data.data);
+        setConfiguringAgentIndex(index);
+        setShowConfigPanel(true);
+      } else {
+        setError('Failed to load agent type details');
+      }
+    } catch (err) {
+      console.error('Failed to fetch agent type details:', err);
+      setError('Failed to load agent type details');
+    }
+  };
+
+  // Save agent configuration
+  const handleConfigSave = (config: Record<string, any>) => {
+    if (configuringAgentIndex !== null) {
+      const updated = [...agents];
+      updated[configuringAgentIndex] = {
+        ...updated[configuringAgentIndex],
+        config,
+      };
+      setAgents(updated);
+    }
+    setShowConfigPanel(false);
+    setConfiguringAgentIndex(null);
+    setAgentTypeDetails(null);
+  };
+
+  // Cancel agent configuration
+  const handleConfigCancel = () => {
+    setShowConfigPanel(false);
+    setConfiguringAgentIndex(null);
+    setAgentTypeDetails(null);
   };
 
   return (
@@ -322,6 +371,14 @@ export default function NewWorkflowPage() {
                         >
                           ↓
                         </button>
+                        {/* Configure button */}
+                        <button
+                          type="button"
+                          onClick={() => openConfigPanel(index)}
+                          className="px-3 py-1 text-sm text-green-600 hover:text-green-800 font-medium"
+                        >
+                          ⚙️ Configure
+                        </button>
                         {/* Edit button */}
                         <button
                           type="button"
@@ -453,6 +510,19 @@ export default function NewWorkflowPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Agent Config Panel */}
+      {showConfigPanel && agentTypeDetails && configuringAgentIndex !== null && (
+        <NoCodeConfigPanel
+          agentTypeId={agentTypeDetails.id}
+          agentTypeName={agentTypeDetails.displayName.zh}
+          configSchema={agentTypeDetails.configSchema}
+          initialConfig={agents[configuringAgentIndex].config}
+          onSave={handleConfigSave}
+          onCancel={handleConfigCancel}
+          language="zh"
+        />
       )}
     </div>
   );
