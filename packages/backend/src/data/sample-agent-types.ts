@@ -4,6 +4,7 @@ import {
   ConfigSchemaBuilder,
   ConfigFields
 } from '@multi-agent-platform/shared';
+import { getImplementationInfo } from './agent-type-mappings';
 
 /**
  * 示例Agent类型定义 - 用于测试系统
@@ -122,7 +123,8 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
     status: 'stable',
     isAvailable: true,
     releaseDate: new Date('2024-01-01'),
-    lastUpdated: new Date('2024-02-15')
+    lastUpdated: new Date('2024-02-15'),
+    implementation: getImplementationInfo('work.web_scraper') || undefined
   },
 
   // API Collector - WORK类型
@@ -195,7 +197,8 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
     status: 'stable',
     isAvailable: true,
     releaseDate: new Date('2024-01-10'),
-    lastUpdated: new Date('2024-02-01')
+    lastUpdated: new Date('2024-02-01'),
+    implementation: getImplementationInfo('work.api_collector') || undefined
   },
 
   // Content Generator - PROCESS类型
@@ -268,7 +271,8 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
     status: 'stable',
     isAvailable: true,
     releaseDate: new Date('2024-02-01'),
-    lastUpdated: new Date('2024-02-20')
+    lastUpdated: new Date('2024-02-20'),
+    implementation: getImplementationInfo('process.content_generator') || undefined
   },
 
   // Twitter Publisher - PUBLISH类型
@@ -340,6 +344,236 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
     status: 'stable',
     isAvailable: true,
     releaseDate: new Date('2024-01-20'),
-    lastUpdated: new Date('2024-02-10')
+    lastUpdated: new Date('2024-02-10'),
+    implementation: getImplementationInfo('publish.twitter') || undefined
+  },
+
+  // RSS Collector - WORK类型
+  {
+    id: 'work.rss_collector',
+    name: 'RSS Collector',
+    displayName: {
+      zh: 'RSS订阅收集器',
+      en: 'RSS Collector'
+    },
+    description: '从RSS/Atom订阅源收集内容，支持多种feed格式',
+    icon: '📡',
+    category: AgentCategory.WORK,
+    categoryPath: 'WORK > RSS Collector',
+    version: '1.1.0',
+    author: 'Multi-Agent Platform Team',
+    tags: ['RSS', 'Atom', '订阅', '内容聚合'],
+    complexity: 'easy',
+    popularity: 650,
+    rating: 4.5,
+    features: [
+      'RSS 2.0支持',
+      'Atom 1.0支持',
+      '自动feed检测',
+      '增量更新',
+      '内容去重'
+    ],
+    capabilities: [
+      '支持多种feed格式',
+      '自动解析媒体内容',
+      '智能更新检测'
+    ],
+    limitations: [
+      '不支持需要认证的feed',
+      '单个feed条目数限制'
+    ],
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('feedUrl', ConfigFields.url('Feed URL', 'RSS/Atom订阅源地址'))
+        .addField('updateInterval', ConfigFields.number('更新间隔（分钟）', '检查feed更新的时间间隔', 5, 1440, 30))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'feedUrl']);
+      
+      return builder.build();
+    })(),
+    defaultConfig: {
+      name: 'RSS订阅收集器',
+      description: '收集RSS订阅内容',
+      enabled: true,
+      feedUrl: 'https://example.com/feed.xml',
+      updateInterval: 30,
+      retries: 3,
+      timeout: 30
+    },
+    configPresets: [],
+    requirements: {
+      minMemory: 128,
+      minCpu: 1,
+      minStorage: 50,
+      dependencies: ['xml2js'],
+      permissions: ['network.http', 'storage.write']
+    },
+    documentation: {
+      overview: 'RSS Collector用于从RSS/Atom订阅源收集内容',
+      quickStart: '配置feed URL即可开始收集订阅内容',
+      apiReference: 'RSS Collector API文档',
+      examples: []
+    },
+    status: 'stable',
+    isAvailable: true,
+    releaseDate: new Date('2024-01-05'),
+    lastUpdated: new Date('2024-02-01'),
+    implementation: getImplementationInfo('work.rss_collector') || undefined
+  },
+
+  // LinkedIn Publisher - PUBLISH类型
+  {
+    id: 'publish.linkedin',
+    name: 'LinkedIn Publisher',
+    displayName: {
+      zh: 'LinkedIn发布器',
+      en: 'LinkedIn Publisher'
+    },
+    description: '自动发布内容到LinkedIn，支持个人和公司页面',
+    icon: '💼',
+    category: AgentCategory.PUBLISH,
+    categoryPath: 'PUBLISH > LinkedIn Publisher',
+    version: '1.2.0',
+    author: 'Social Media Team',
+    tags: ['LinkedIn', '社交媒体', '职业社交', '营销'],
+    complexity: 'medium',
+    popularity: 1200,
+    rating: 4.6,
+    features: [
+      'LinkedIn API支持',
+      '个人和公司页面发布',
+      '富文本格式',
+      '媒体文件上传',
+      '发布统计'
+    ],
+    capabilities: [
+      '支持文本、图片、文档发布',
+      '自动格式优化',
+      '发布时间调度'
+    ],
+    limitations: [
+      '需要LinkedIn API访问权限',
+      '受LinkedIn发布频率限制'
+    ],
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('apiKey', ConfigFields.apiKey('LinkedIn API密钥', 'LinkedIn API访问密钥'))
+        .addField('content', ConfigFields.textarea('发布内容', '要发布的内容', '输入LinkedIn帖子内容...'))
+        .addField('targetType', ConfigFields.select('发布目标', '选择发布到个人页面或公司页面', ['personal', 'company'], 'personal'))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'apiKey', 'content']);
+      
+      return builder.build();
+    })(),
+    defaultConfig: {
+      name: 'LinkedIn发布器',
+      description: '自动发布到LinkedIn',
+      enabled: true,
+      content: '',
+      targetType: 'personal',
+      retries: 2,
+      timeout: 30
+    },
+    configPresets: [],
+    requirements: {
+      minMemory: 256,
+      minCpu: 1,
+      minStorage: 50,
+      dependencies: ['linkedin-api'],
+      permissions: ['network.http', 'social.publish']
+    },
+    documentation: {
+      overview: 'LinkedIn Publisher用于自动发布内容到LinkedIn',
+      quickStart: '配置API密钥和发布内容即可开始',
+      apiReference: 'LinkedIn Publisher API文档',
+      examples: []
+    },
+    status: 'stable',
+    isAvailable: true,
+    releaseDate: new Date('2024-01-25'),
+    lastUpdated: new Date('2024-02-15'),
+    implementation: getImplementationInfo('publish.linkedin') || undefined
+  },
+
+  // Website Publisher - PUBLISH类型
+  {
+    id: 'publish.website',
+    name: 'Website Publisher',
+    displayName: {
+      zh: '网站发布器',
+      en: 'Website Publisher'
+    },
+    description: '发布内容到网站，支持多种CMS和静态站点生成器',
+    icon: '🌐',
+    category: AgentCategory.PUBLISH,
+    categoryPath: 'PUBLISH > Website Publisher',
+    version: '1.3.0',
+    author: 'Web Publishing Team',
+    tags: ['网站', 'CMS', '静态站点', '发布'],
+    complexity: 'easy',
+    popularity: 890,
+    rating: 4.4,
+    features: [
+      '多种CMS支持',
+      'HTML模板系统',
+      'SEO优化',
+      '媒体文件管理',
+      '自动部署'
+    ],
+    capabilities: [
+      '支持WordPress、Hugo等',
+      '自动HTML生成',
+      'SEO元数据优化'
+    ],
+    limitations: [
+      '需要网站访问权限',
+      '部署时间取决于网站配置'
+    ],
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('websiteUrl', ConfigFields.url('网站URL', '目标网站地址'))
+        .addField('apiEndpoint', ConfigFields.url('API端点', '网站API接口地址'))
+        .addField('apiKey', ConfigFields.apiKey('API密钥', '网站API访问密钥'))
+        .addField('content', ConfigFields.textarea('发布内容', '要发布的内容', '输入文章内容...'))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'websiteUrl', 'apiEndpoint', 'content']);
+      
+      return builder.build();
+    })(),
+    defaultConfig: {
+      name: '网站发布器',
+      description: '发布内容到网站',
+      enabled: true,
+      websiteUrl: 'https://example.com',
+      apiEndpoint: 'https://example.com/api',
+      content: '',
+      retries: 2,
+      timeout: 60
+    },
+    configPresets: [],
+    requirements: {
+      minMemory: 256,
+      minCpu: 1,
+      minStorage: 100,
+      dependencies: ['axios'],
+      permissions: ['network.http', 'storage.write']
+    },
+    documentation: {
+      overview: 'Website Publisher用于发布内容到各种网站平台',
+      quickStart: '配置网站URL和API信息即可开始发布',
+      apiReference: 'Website Publisher API文档',
+      examples: []
+    },
+    status: 'stable',
+    isAvailable: true,
+    releaseDate: new Date('2024-01-15'),
+    lastUpdated: new Date('2024-02-10'),
+    implementation: getImplementationInfo('publish.website') || undefined
   }
 ];

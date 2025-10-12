@@ -51,6 +51,13 @@ export interface AgentTypeDefinition {
   isAvailable: boolean;
   releaseDate: Date;
   lastUpdated: Date;
+  
+  // 实现引用
+  implementation?: {
+    className: string;        // 实现类名，例如：'WebScraperAgent'
+    modulePath: string;       // 模块路径，例如：'./agents/work/WebScraperAgent'
+    isAvailable: boolean;     // 实现是否可用
+  };
 }
 
 /**
