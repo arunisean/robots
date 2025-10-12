@@ -59,7 +59,13 @@ export default function NewWorkflowPage() {
         status: formData.status,
         version: '1.0.0',
         definition: {
-          nodes: agents,
+          nodes: agents.map(agent => ({
+            id: agent.id,
+            type: agent.agentType,
+            category: agent.agentCategory,
+            config: agent.config,
+            order: agent.order,
+          })),
           connections: agents.slice(0, -1).map((agent, index) => ({
             from: agent.id,
             to: agents[index + 1].id,
@@ -117,7 +123,7 @@ export default function NewWorkflowPage() {
           id: `agent-${Date.now()}`,
           agentType: typeId,
           agentCategory: agentType.category.toLowerCase(),
-          name: agentType.displayName.zh,
+          name: agentType.displayName.en,
           config: agentType.defaultConfig || {},
           order: editingAgentIndex !== null ? editingAgentIndex : agents.length,
         };
