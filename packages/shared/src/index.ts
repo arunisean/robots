@@ -108,3 +108,4 @@ export type {
 export * from './utils/validation';
 export * from './utils/crypto';
 export * from './utils/formatting';
+export * from './utils/config-schema';

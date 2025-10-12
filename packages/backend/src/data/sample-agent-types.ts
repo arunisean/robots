@@ -1,6 +1,8 @@
 import {
   AgentTypeDefinition,
-  AgentCategory
+  AgentCategory,
+  ConfigSchemaBuilder,
+  ConfigFields
 } from '@multi-agent-platform/shared';
 
 /**
@@ -44,67 +46,20 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
       '对于重度JavaScript依赖的SPA支持有限',
       '单次抓取数据量建议不超过10000条'
     ],
-    configSchema: {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          title: '名称',
-          description: 'Agent的显示名称',
-          ui: {
-            widget: 'input',
-            placeholder: '请输入Agent名称'
-          }
-        },
-        description: {
-          type: 'string',
-          title: '描述',
-          description: 'Agent的功能描述',
-          ui: {
-            widget: 'textarea',
-            placeholder: '请描述这个Agent的功能和用途'
-          }
-        },
-        url: {
-          type: 'string',
-          title: '目标URL',
-          description: '要抓取的网页地址',
-          ui: {
-            widget: 'input',
-            placeholder: 'https://example.com'
-          }
-        },
-        selectors: {
-          type: 'object',
-          title: 'CSS选择器配置',
-          description: '定义要提取的数据字段',
-          properties: {
-            title: {
-              type: 'string',
-              title: '标题选择器',
-              description: '提取文章或内容标题的CSS选择器',
-              ui: {
-                widget: 'input',
-                placeholder: 'h1, .title'
-              }
-            },
-            content: {
-              type: 'string',
-              title: '内容选择器',
-              description: '提取主要内容的CSS选择器',
-              ui: {
-                widget: 'input',
-                placeholder: '.content, .article-body'
-              }
-            }
-          },
-          ui: {
-            widget: 'input'
-          }
-        }
-      },
-      required: ['name', 'url', 'selectors']
-    },
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('url', ConfigFields.url('目标URL', '要抓取的网页地址'))
+        .addField('selectors', ConfigFields.object('CSS选择器配置', '定义要提取的数据字段', {
+          title: ConfigFields.cssSelector('标题选择器', '提取文章或内容标题的CSS选择器'),
+          content: ConfigFields.cssSelector('内容选择器', '提取主要内容的CSS选择器')
+        }))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'url', 'selectors']);
+      
+      return builder.build();
+    })(),
     defaultConfig: {
       name: '网页抓取器',
       description: '抓取网页内容',
@@ -203,38 +158,17 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
       '仅支持JSON格式响应',
       '不支持GraphQL'
     ],
-    configSchema: {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          title: '名称',
-          description: 'Agent的显示名称',
-          ui: { widget: 'input' }
-        },
-        description: {
-          type: 'string',
-          title: '描述',
-          description: 'Agent的功能描述',
-          ui: { widget: 'textarea' }
-        },
-        endpoint: {
-          type: 'string',
-          title: 'API端点',
-          description: 'API的URL地址',
-          ui: { widget: 'input', placeholder: 'https://api.example.com/data' }
-        },
-        method: {
-          type: 'string',
-          title: 'HTTP方法',
-          description: 'HTTP请求方法',
-          enum: ['GET', 'POST', 'PUT', 'DELETE'],
-          default: 'GET',
-          ui: { widget: 'select' }
-        }
-      },
-      required: ['name', 'endpoint']
-    },
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('endpoint', ConfigFields.url('API端点', 'API的URL地址'))
+        .addField('method', ConfigFields.select('HTTP方法', 'HTTP请求方法', ['GET', 'POST', 'PUT', 'DELETE'], 'GET'))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'endpoint']);
+      
+      return builder.build();
+    })(),
     defaultConfig: {
       name: 'API收集器',
       description: '从API收集数据',
@@ -297,38 +231,17 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
       '依赖外部AI服务',
       '生成内容需要人工审核'
     ],
-    configSchema: {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          title: '名称',
-          description: 'Agent的显示名称',
-          ui: { widget: 'input' }
-        },
-        description: {
-          type: 'string',
-          title: '描述',
-          description: 'Agent的功能描述',
-          ui: { widget: 'textarea' }
-        },
-        aiModel: {
-          type: 'string',
-          title: 'AI模型',
-          description: '选择使用的AI模型',
-          enum: ['gpt-3.5-turbo', 'gpt-4', 'claude-3'],
-          default: 'gpt-3.5-turbo',
-          ui: { widget: 'select' }
-        },
-        prompt: {
-          type: 'string',
-          title: '提示词模板',
-          description: '定义AI生成内容的指令',
-          ui: { widget: 'textarea', placeholder: '请写一篇关于{topic}的文章...' }
-        }
-      },
-      required: ['name', 'aiModel', 'prompt']
-    },
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('aiModel', ConfigFields.select('AI模型', '选择使用的AI模型', ['gpt-3.5-turbo', 'gpt-4', 'claude-3'], 'gpt-3.5-turbo'))
+        .addField('prompt', ConfigFields.textarea('提示词模板', '定义AI生成内容的指令', '请写一篇关于{topic}的文章...'))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'aiModel', 'prompt']);
+      
+      return builder.build();
+    })(),
     defaultConfig: {
       name: '内容生成器',
       description: 'AI驱动的内容生成',
@@ -391,36 +304,17 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
       '需要Twitter API访问权限',
       '受Twitter发布频率限制'
     ],
-    configSchema: {
-      type: 'object',
-      properties: {
-        name: {
-          type: 'string',
-          title: '名称',
-          description: 'Agent的显示名称',
-          ui: { widget: 'input' }
-        },
-        description: {
-          type: 'string',
-          title: '描述',
-          description: 'Agent的功能描述',
-          ui: { widget: 'textarea' }
-        },
-        apiKey: {
-          type: 'string',
-          title: 'Twitter API密钥',
-          description: 'Twitter API访问密钥',
-          ui: { widget: 'input', placeholder: '请输入API密钥' }
-        },
-        content: {
-          type: 'string',
-          title: '发布内容',
-          description: '要发布的推文内容（最多280字符）',
-          ui: { widget: 'textarea', placeholder: '输入推文内容...' }
-        }
-      },
-      required: ['name', 'apiKey', 'content']
-    },
+    configSchema: (() => {
+      const builder = new ConfigSchemaBuilder()
+        .addBasicFields()
+        .addField('apiKey', ConfigFields.apiKey('Twitter API密钥', 'Twitter API访问密钥'))
+        .addField('content', ConfigFields.textarea('发布内容', '要发布的推文内容（最多280字符）', '输入推文内容...'))
+        .addScheduleFields()
+        .addErrorHandlingFields()
+        .setRequired(['name', 'apiKey', 'content']);
+      
+      return builder.build();
+    })(),
     defaultConfig: {
       name: 'Twitter发布器',
       description: '自动发布到Twitter',
