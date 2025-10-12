@@ -1,5 +1,6 @@
 // Export core types
 export * from './types/agent';
+export * from './types/agent-type';
 export * from './types/user';
 
 // Export specific agent types
