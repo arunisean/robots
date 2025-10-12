@@ -5,9 +5,9 @@ import { AgentCategory } from '@multi-agent-platform/shared';
 import { workflowAuthAPI } from '../../lib/api-auth';
 import { useWallet } from '../../contexts/WalletContext';
 import { WalletConnection, AuthGuard } from '../../components/WalletConnection';
-import CategorySelector from '../src/components/agent-types/CategorySelector';
-import TypeSelector from '../src/components/agent-types/TypeSelector';
-import { NoCodeConfigPanel } from '../src/components/agent-config';
+import CategorySelector from '../../src/components/agent-types/CategorySelector';
+import TypeSelector from '../../src/components/agent-types/TypeSelector';
+import { NoCodeConfigPanel } from '../../src/components/agent-config';
 
 /**
  * Create new workflow page
