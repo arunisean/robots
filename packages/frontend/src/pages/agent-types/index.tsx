@@ -1,14 +1,27 @@
 import React, { useState } from 'react';
 import { AgentCategory } from '@multi-agent-platform/shared';
 import CategorySelector from '../../components/agent-types/CategorySelector';
+import TypeSelector from '../../components/agent-types/TypeSelector';
 
 export default function AgentTypesPage() {
   const [selectedCategory, setSelectedCategory] = useState<AgentCategory | undefined>();
+  const [selectedTypeId, setSelectedTypeId] = useState<string | undefined>();
   const [language, setLanguage] = useState<'zh' | 'en'>('zh');
 
   const handleCategorySelect = (category: AgentCategory) => {
     console.log('Selected category:', category);
     setSelectedCategory(category);
+    setSelectedTypeId(undefined); // 重置选中的类型
+  };
+
+  const handleTypeSelect = (typeId: string) => {
+    console.log('Selected type:', typeId);
+    setSelectedTypeId(typeId);
+  };
+
+  const handleBack = () => {
+    setSelectedCategory(undefined);
+    setSelectedTypeId(undefined);
   };
 
   return (
@@ -36,42 +49,103 @@ export default function AgentTypesPage() {
           </button>
         </div>
 
-        {/* Category选择器 */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <CategorySelector
-            onSelect={handleCategorySelect}
-            selectedCategory={selectedCategory}
-            language={language}
-          />
-        </div>
-
-        {/* 选中的Category信息 */}
+        {/* 面包屑导航 */}
         {selectedCategory && (
+          <div className="mb-6 flex items-center text-sm">
+            <button
+              onClick={handleBack}
+              className="text-blue-600 hover:text-blue-800 font-medium"
+            >
+              {language === 'zh' ? '← 返回类别选择' : '← Back to Categories'}
+            </button>
+            <span className="mx-2 text-gray-400">/</span>
+            <span className="text-gray-600">{selectedCategory}</span>
+            {selectedTypeId && (
+              <>
+                <span className="mx-2 text-gray-400">/</span>
+                <span className="text-gray-900 font-medium">{selectedTypeId}</span>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Category选择器 */}
+        {!selectedCategory && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <CategorySelector
+              onSelect={handleCategorySelect}
+              selectedCategory={selectedCategory}
+              language={language}
+            />
+          </div>
+        )}
+
+        {/* Type选择器 */}
+        {selectedCategory && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                {language === 'zh' ? '选择Agent类型' : 'Select Agent Type'}
+              </h2>
+              <p className="text-gray-600">
+                {language === 'zh' 
+                  ? `从${selectedCategory}类别中选择一个Agent类型` 
+                  : `Choose an agent type from the ${selectedCategory} category`}
+              </p>
+            </div>
+            
+            <TypeSelector
+              category={selectedCategory}
+              onSelect={handleTypeSelect}
+              selectedTypeId={selectedTypeId}
+              language={language}
+            />
+          </div>
+        )}
+
+        {/* 选中的Type信息 */}
+        {selectedTypeId && (
           <div className="mt-6 bg-white rounded-lg shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              {language === 'zh' ? '已选择' : 'Selected'}
+              {language === 'zh' ? '✅ 已选择' : '✅ Selected'}
             </h3>
-            <p className="text-gray-600">
-              {language === 'zh' ? '类别：' : 'Category: '}
-              <span className="font-semibold text-blue-600">{selectedCategory}</span>
-            </p>
-            <p className="text-sm text-gray-500 mt-2">
-              {language === 'zh' 
-                ? '下一步：选择具体的Agent类型' 
-                : 'Next: Select specific agent type'}
-            </p>
+            <div className="space-y-2">
+              <p className="text-gray-600">
+                {language === 'zh' ? '类别：' : 'Category: '}
+                <span className="font-semibold text-blue-600">{selectedCategory}</span>
+              </p>
+              <p className="text-gray-600">
+                {language === 'zh' ? 'Agent类型：' : 'Agent Type: '}
+                <span className="font-semibold text-blue-600">{selectedTypeId}</span>
+              </p>
+            </div>
+            <div className="mt-4 flex gap-3">
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {language === 'zh' ? '配置Agent' : 'Configure Agent'}
+              </button>
+              <button className="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                {language === 'zh' ? '查看详情' : 'View Details'}
+              </button>
+            </div>
           </div>
         )}
 
         {/* 开发信息 */}
-        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <h4 className="text-sm font-semibold text-blue-900 mb-2">
-            🚧 {language === 'zh' ? '开发中' : 'In Development'}
+        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-4">
+          <h4 className="text-sm font-semibold text-green-900 mb-2">
+            ✅ {language === 'zh' ? '已完成' : 'Completed'}
           </h4>
-          <p className="text-sm text-blue-700">
+          <ul className="text-sm text-green-700 space-y-1">
+            <li>• CategorySelector组件 - 类别选择</li>
+            <li>• TypeSelector组件 - 类型选择</li>
+            <li>• 搜索和筛选功能</li>
+            <li>• 响应式布局</li>
+            <li>• 中英文双语支持</li>
+          </ul>
+          <p className="text-sm text-green-700 mt-2">
             {language === 'zh' 
-              ? 'CategorySelector组件已完成。下一步将开发TypeSelector组件来显示选中类别下的具体Agent类型。' 
-              : 'CategorySelector component is complete. Next step: develop TypeSelector component to show specific agent types.'}
+              ? '下一步：开发No-Code配置面板' 
+              : 'Next: Develop No-Code configuration panel'}
           </p>
         </div>
       </div>
