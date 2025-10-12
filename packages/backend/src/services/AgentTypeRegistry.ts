@@ -302,8 +302,10 @@ export class AgentTypeRegistry {
    * 这里会注册所有内置的Agent类型
    */
   private registerDefaultTypes(): void {
-    // 这个方法会在后续任务中实现，注册所有具体的Agent类型
-    logger.info('AgentTypeRegistry initialized, ready to register types');
+    // 加载示例Agent类型
+    const { SAMPLE_AGENT_TYPES } = require('../data/sample-agent-types');
+    this.registerTypes(SAMPLE_AGENT_TYPES);
+    logger.info(`AgentTypeRegistry initialized with ${SAMPLE_AGENT_TYPES.length} agent types`);
   }
 
   /**

@@ -36,7 +36,7 @@ export interface AgentTypeDefinition {
   limitations: string[];
   
   // 配置定义
-  configSchema: AgentConfigSchema;
+  configSchema: AgentConfigFormSchema;
   defaultConfig: Partial<AgentConfig>;
   configPresets: ConfigPreset[];
   
@@ -72,10 +72,10 @@ export interface ConfigPreset {
 }
 
 /**
- * Agent Config Schema
+ * Agent Config Form Schema
  * 定义Agent配置的JSON Schema，用于动态生成表单和验证
  */
-export interface AgentConfigSchema {
+export interface AgentConfigFormSchema {
   type: 'object';
   properties: {
     [key: string]: ConfigFieldSchema;
@@ -126,7 +126,7 @@ export interface ConfigFieldUI {
   disabled?: boolean; // 是否禁用
   conditional?: {
     field: string; // 依赖的字段名
-    value: any; // 当依赖字段等于此值时显示
+    value?: any; // 当依赖字段等于此值时显示
     operator?: 'eq' | 'ne' | 'gt' | 'lt' | 'in' | 'nin'; // 比较操作符
   };
   validation?: {
@@ -228,7 +228,7 @@ export const ConfigFieldUISchema = z.object({
   disabled: z.boolean().optional(),
   conditional: z.object({
     field: z.string(),
-    value: z.any(),
+    value: z.any().optional(),
     operator: z.enum(['eq', 'ne', 'gt', 'lt', 'in', 'nin']).optional()
   }).optional(),
   validation: z.object({
