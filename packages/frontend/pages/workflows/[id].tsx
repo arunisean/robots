@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import { workflowAPI, executionAPI } from '../../lib/api';
+import { workflowAuthAPI } from '../../lib/api-auth';
 import { WorkflowExecutionMonitor } from '../../components/WorkflowExecutionMonitor';
+import { WalletConnection, AuthGuard } from '../../components/WalletConnection';
 
 /**
  * Workflow detail page
@@ -30,7 +31,7 @@ export default function WorkflowDetailPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await workflowAPI.get(id as string);
+      const data = await workflowAuthAPI.get(id as string);
       setWorkflow(data);
     } catch (err: any) {
       setError(err.message || 'Failed to load workflow');
@@ -41,8 +42,10 @@ export default function WorkflowDetailPage() {
 
   const loadExecutions = async () => {
     try {
-      const data = await executionAPI.list({ workflowId: id as string, limit: 10 });
-      setExecutions(data.executions || data || []);
+      // TODO: Implement executions API
+      // const data = await executionAuthAPI.list({ workflowId: id as string, limit: 10 });
+      // setExecutions(data.executions || data || []);
+      setExecutions([]); // Temporarily set empty array
     } catch (err: any) {
       console.error('Failed to load executions:', err);
     }
