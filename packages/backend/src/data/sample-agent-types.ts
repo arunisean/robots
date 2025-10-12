@@ -690,5 +690,175 @@ export const SAMPLE_AGENT_TYPES: AgentTypeDefinition[] = [
     releaseDate: new Date('2024-01-15'),
     lastUpdated: new Date('2024-02-10'),
     implementation: getImplementationInfo('publish.website') || undefined
+  },
+
+  // Data Display - VALIDATE类型（特殊Agent用于调试）
+  {
+    id: 'validate.data_display',
+    name: 'Data Display',
+    displayName: {
+      zh: '数据展示',
+      en: 'Data Display'
+    },
+    description: 'Display intermediate data in workflow for debugging and monitoring. Can be inserted at any position.',
+    icon: '📊',
+    category: AgentCategory.VALIDATE,
+    categoryPath: 'VALIDATE > Data Display',
+    version: '1.0.0',
+    author: 'Multi-Agent Platform Team',
+    tags: ['debugging', 'monitoring', 'data inspection', 'visualization'],
+    complexity: 'easy',
+    popularity: 500,
+    rating: 4.7,
+    features: [
+      'Multiple display formats (JSON, Table, Text, Summary)',
+      'Configurable depth and truncation',
+      'Field filtering',
+      'Pass-through data (non-destructive)',
+      'Real-time display in workflow execution',
+      'No external dependencies'
+    ],
+    capabilities: [
+      'Display data in multiple formats',
+      'Filter specific fields',
+      'Truncate long values',
+      'Generate data summaries',
+      'Pass through data unchanged'
+    ],
+    limitations: [
+      'Display only, no data transformation',
+      'Limited to configured max depth',
+      'Large datasets may be truncated'
+    ],
+    configSchema: new ConfigSchemaBuilder()
+      .addBasicFields()
+      .addField({
+        name: 'displayFormat',
+        type: 'string',
+        title: 'Display Format',
+        description: 'How to format the data for display',
+        enum: ['json', 'table', 'text', 'summary'],
+        default: 'json',
+        ui: {
+          widget: 'select',
+          group: 'basic',
+          order: 10
+        }
+      })
+      .addField({
+        name: 'fieldsToDisplay',
+        type: 'string',
+        title: 'Fields to Display',
+        description: 'Comma-separated list of fields to display (empty = all)',
+        ui: {
+          widget: 'input',
+          placeholder: 'e.g., title, content, author',
+          helpText: 'Leave empty to display all fields',
+          group: 'basic',
+          order: 11
+        }
+      })
+      .addField({
+        name: 'maxDepth',
+        type: 'number',
+        title: 'Max Depth',
+        description: 'Maximum depth for nested objects',
+        minimum: 1,
+        maximum: 10,
+        default: 5,
+        ui: {
+          widget: 'number',
+          group: 'advanced',
+          order: 201
+        }
+      })
+      .addField({
+        name: 'truncateLength',
+        type: 'number',
+        title: 'Truncate Length',
+        description: 'Maximum length for string values',
+        minimum: 100,
+        maximum: 10000,
+        default: 1000,
+        ui: {
+          widget: 'number',
+          group: 'advanced',
+          order: 202
+        }
+      })
+      .build(),
+    defaultConfig: {
+      name: 'Data Display',
+      description: 'Display intermediate data',
+      enabled: true,
+      displayFormat: 'json',
+      fieldsToDisplay: '',
+      maxDepth: 5,
+      truncateLength: 1000
+    },
+    configPresets: [
+      {
+        id: 'json-full',
+        name: 'Full JSON Display',
+        description: 'Display complete data as JSON',
+        scenario: 'Debugging - see all data',
+        config: {
+          displayFormat: 'json',
+          maxDepth: 10,
+          truncateLength: 5000
+        },
+        tags: ['debugging', 'full'],
+        isOfficial: true,
+        usageCount: 150,
+        createdAt: new Date('2024-03-01'),
+        updatedAt: new Date('2024-03-01')
+      },
+      {
+        id: 'summary-quick',
+        name: 'Quick Summary',
+        description: 'Show data summary only',
+        scenario: 'Quick inspection',
+        config: {
+          displayFormat: 'summary',
+          maxDepth: 2,
+          truncateLength: 500
+        },
+        tags: ['quick', 'summary'],
+        isOfficial: true,
+        usageCount: 200,
+        createdAt: new Date('2024-03-01'),
+        updatedAt: new Date('2024-03-01')
+      }
+    ],
+    requirements: {
+      minMemory: 128,
+      minCpu: 1,
+      minStorage: 10,
+      dependencies: [],
+      permissions: []
+    },
+    documentation: {
+      overview: 'Data Display Agent is a special debugging tool that can be inserted anywhere in your workflow to inspect intermediate data',
+      quickStart: 'Add this agent between any two agents to see what data is flowing through',
+      apiReference: 'Data Display Agent API',
+      examples: [
+        {
+          title: 'Basic Data Inspection',
+          description: 'Display data as JSON',
+          language: 'json',
+          code: JSON.stringify({
+            name: 'Data Inspector',
+            displayFormat: 'json',
+            maxDepth: 5
+          }, null, 2),
+          tags: ['basic', 'json']
+        }
+      ]
+    },
+    status: 'stable',
+    isAvailable: true,
+    releaseDate: new Date('2024-03-01'),
+    lastUpdated: new Date('2024-03-01'),
+    implementation: getImplementationInfo('validate.data_display') || undefined
   }
 ];

@@ -22,7 +22,7 @@ export const AGENT_TYPE_TO_CLASS_MAP: Record<string, string> = {
   'publish.website': 'WebsitePublishAgent',
   
   // Validate Agents
-  // TODO: 添加Validate agents的映射
+  'validate.data_display': 'DataDisplayAgent',
 };
 
 /**
@@ -42,6 +42,9 @@ export const AGENT_CLASS_TO_MODULE_MAP: Record<string, string> = {
   'TwitterPublishAgent': '../agents/publish/TwitterPublishAgent',
   'LinkedInPublishAgent': '../agents/publish/LinkedInPublishAgent',
   'WebsitePublishAgent': '../agents/publish/WebsitePublishAgent',
+  
+  // Validate Agents
+  'DataDisplayAgent': '../agents/validate/DataDisplayAgent',
 };
 
 /**
