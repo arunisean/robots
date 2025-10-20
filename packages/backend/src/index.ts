@@ -137,7 +137,7 @@ fastify.get('/debug/redis', async (request, reply) => {
     } catch (error) {
       redisStatus = 'error';
       testResult = {
-        error: error.message
+        error: error instanceof Error ? error.message : String(error)
       };
     }
   }

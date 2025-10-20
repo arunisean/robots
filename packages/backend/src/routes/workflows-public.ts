@@ -161,7 +161,7 @@ export const workflowsPublicRoutes: FastifyPluginAsync = async (fastify) => {
       // Execute workflow asynchronously using the workflow's actual owner
       const execution = await workflowExecutor.executeWorkflow(
         workflow,
-        options,
+        options as any,
         workflow.ownerId
       );
 

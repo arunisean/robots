@@ -21,13 +21,13 @@ src/
 ├── agents/                     # Agent system implementation
 │   ├── base/                   # Base agent interfaces and classes
 │   ├── factory/                # Agent creation and instantiation
-│   ├── process/                # Process agents (data transformation)
-│   ├── publish/                # Publish agents (content distribution)
+│   ├── monitor/                # Monitor agents (market data collection)
+│   ├── analyze/                # Analyze agents (signal generation)
+│   ├── execute/                # Execute agents (trade execution)
+│   ├── verify/                 # Verify agents (validation and risk)
 │   ├── registry/               # Agent registration and discovery
 │   ├── runtime/                # Agent execution environment
-│   ├── templates/              # Agent template system
-│   ├── validate/               # Validate agents (quality assessment)
-│   └── work/                   # Work agents (data collection)
+│   └── templates/              # Agent template system
 ├── config/                     # Application configuration
 ├── database/                   # Database layer
 │   ├── migrations/             # SQL migration files
@@ -64,12 +64,16 @@ src/
 src/
 ├── types/                      # TypeScript type definitions
 │   ├── agent.ts               # Base agent types
-│   ├── process-agent.ts       # Process agent specific types
-│   ├── publish-agent.ts       # Publish agent specific types
-│   ├── validate-agent.ts      # Validate agent specific types
-│   ├── work-agent.ts          # Work agent specific types
+│   ├── monitor-agent.ts       # Monitor agent specific types (market data)
+│   ├── analyze-agent.ts       # Analyze agent specific types (signals)
+│   ├── execute-agent.ts       # Execute agent specific types (trading)
+│   ├── verify-agent.ts        # Verify agent specific types (validation)
 │   ├── workflow.ts            # Workflow orchestration types
-│   └── user.ts                # User and authentication types
+│   ├── user.ts                # User and authentication types
+│   ├── work-agent.ts          # Legacy (deprecated)
+│   ├── process-agent.ts       # Legacy (deprecated)
+│   ├── publish-agent.ts       # Legacy (deprecated)
+│   └── validate-agent.ts      # Legacy (deprecated)
 └── utils/                      # Shared utility functions
     ├── crypto.ts              # Cryptographic utilities
     ├── formatting.ts          # Data formatting helpers
@@ -84,26 +88,34 @@ src/
 - Follow consistent lifecycle: `initialize()` → `execute()` → `cleanup()`
 - Uses template method pattern to define execution flow
 
-### Agent Categories
-1. **Work Agents**: Data collection and ingestion
-   - Web scraping agents
-   - API integration agents
-   - Social media collectors
+### Agent Categories (Trading-Focused)
+1. **Monitor Agents**: Market data collection and monitoring
+   - CEX price monitors (Binance, OKX, Coinbase)
+   - DEX price monitors (Uniswap, PancakeSwap)
+   - On-chain data collectors (wallet tracking, transaction monitoring)
+   - Gas price monitors
+   - Social sentiment analyzers
 
-2. **Process Agents**: Data transformation and analysis
-   - Content generation agents
-   - Data processing agents
-   - LLM integration agents
+2. **Analyze Agents**: Trading signal generation and analysis
+   - Technical analysis agents (RSI, MACD, Moving Averages)
+   - Arbitrage opportunity detectors
+   - Risk assessment agents
+   - Grid trading calculators
+   - ML-based prediction agents
 
-3. **Publish Agents**: Content distribution
-   - Social media publishers
-   - Website deployment agents
-   - Multi-platform distributors
+3. **Execute Agents**: Trade execution and position management
+   - CEX order execution (market, limit, stop-loss orders)
+   - DEX swap execution (Uniswap, PancakeSwap)
+   - DeFi operations (staking, lending, yield farming)
+   - Cross-chain bridge operations
+   - Position management agents
 
-4. **Validate Agents**: Quality assurance and monitoring
-   - Performance validators
-   - Content quality checkers
-   - Security scanners
+4. **Verify Agents**: Execution validation and risk monitoring
+   - Trade confirmation validators
+   - P&L calculators
+   - Risk limit enforcers
+   - Performance trackers
+   - Anomaly detectors
 
 ### Agent Framework Implementation
 - Custom-built agent framework with abstract base classes
@@ -148,11 +160,14 @@ src/
 - `POST /api/executions/:id/cancel` - Cancel execution
 
 ### Execution Flow
-1. **Validation**: Structure, circular dependencies, agent order
-2. **Sequential Execution**: Work → Process → Publish → Validate
-3. **Data Passing**: Output from previous agents flows to next
-4. **Error Handling**: Continue/stop strategies with detailed error tracking
-5. **Metrics Collection**: Duration, success rate, resource usage
+1. **Validation**: Structure, circular dependencies, agent order, risk limits
+2. **Parallel Monitor Execution**: Multiple Monitor agents run concurrently
+3. **Sequential Analysis**: Analyze agents process aggregated market data
+4. **Conditional Execution**: Execute agents run only when trading signals meet thresholds
+5. **Verification**: Verify agents validate execution and enforce risk controls
+6. **Data Passing**: Output from previous stages flows to next stage
+7. **Error Handling**: Continue/stop/retry strategies with detailed error tracking
+8. **Metrics Collection**: Duration, success rate, P&L, resource usage
 
 ## Configuration Files
 

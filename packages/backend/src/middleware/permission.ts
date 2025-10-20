@@ -22,7 +22,7 @@ export function permissionMiddleware(
       }
 
       const userId = request.currentUser.id;
-      const resourceId = request.params?.id as string;
+      const resourceId = (request.params as any)?.id as string;
 
       if (!resourceId) {
         return reply.status(400).send({

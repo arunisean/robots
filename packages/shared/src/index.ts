@@ -3,7 +3,104 @@ export * from './types/agent';
 export * from './types/agent-type';
 export * from './types/user';
 
-// Export specific agent types
+// Export new trading-focused agent types
+export {
+  MonitorDataSourceType
+} from './types/monitor-agent';
+
+export type {
+  MonitorDataSource,
+  MonitorDataSourceConfig,
+  MarketData,
+  OnChainData,
+  Transaction,
+  BlockchainEvent,
+  GasPriceData,
+  MonitorAgentConfig,
+  MonitorAgentInput,
+  MonitorAgentOutput,
+  SentimentData,
+  MonitorSummary,
+  MonitorError
+} from './types/monitor-agent';
+
+export {
+  AnalysisType,
+  TechnicalIndicator
+} from './types/analyze-agent';
+
+export type {
+  AnalysisRule,
+  AnalysisRuleConfig,
+  TradingSignal,
+  ArbitrageOpportunity,
+  RiskAssessment,
+  RiskFactor,
+  GridCalculation,
+  GridLevel,
+  AnalyzeAgentConfig,
+  AnalyzeAgentInput,
+  AnalyzeAgentOutput,
+  PortfolioState,
+  Position,
+  Prediction,
+  AnalysisSummary,
+  AnalysisError
+} from './types/analyze-agent';
+
+export {
+  ExecutionPlatform,
+  OrderType,
+  OrderSide,
+  OrderStatus
+} from './types/execute-agent';
+
+export type {
+  ExecutionAction,
+  ExecutionActionConfig,
+  OrderRequest,
+  OrderResult,
+  SwapRequest,
+  SwapResult,
+  PositionUpdate,
+  ExecuteAgentConfig,
+  ExecuteAgentInput,
+  ExecuteAgentOutput,
+  ExecutionError,
+  PaperTradingState,
+  PaperTrade,
+  ExecutionSummary as TradeExecutionSummary,
+  ExchangeCredentials,
+  GasEstimation
+} from './types/execute-agent';
+
+export {
+  VerificationType
+} from './types/verify-agent';
+
+export type {
+  VerificationRule,
+  VerificationRuleConfig,
+  ExecutionVerification,
+  VerificationIssue,
+  PnLCalculation,
+  RiskCheckResult,
+  RiskCheck,
+  RiskViolation,
+  PerformanceMetrics,
+  AnomalyDetection,
+  Anomaly,
+  VerifyAgentConfig,
+  VerifyAgentInput,
+  VerifyAgentOutput,
+  VerificationSummary,
+  AlertConfig,
+  AlertCondition,
+  AuditLogEntry
+} from './types/verify-agent';
+
+// Legacy exports for backward compatibility (deprecated)
+// These will be removed in a future version
 export {
   DataSourceType
 } from './types/work-agent';
@@ -68,6 +165,57 @@ export type {
   ValidateAgentInput,
   ValidateAgentOutput
 } from './types/validate-agent';
+
+// Export strategy template types
+export type {
+  StrategyCategory,
+  StrategyDifficulty,
+  StrategyInstanceStatus,
+  ParameterType,
+  TemplateParameter,
+  ParameterValidation,
+  RiskProfile as StrategyRiskProfile,
+  PerformanceMetrics as StrategyPerformanceMetrics,
+  TradingWorkflowDefinition,
+  TriggerConfig,
+  TriggerConfigDetails,
+  WorkflowStages,
+  MonitorStageConfig,
+  AnalyzeStageConfig,
+  DecisionConfig,
+  DecisionRule,
+  ExecuteStageConfig,
+  VerifyStageConfig,
+  AlertThresholds,
+  TradingWorkflowSettings,
+  RiskControlConfig,
+  NotificationConfig,
+  LoggingConfig,
+  StrategyTemplate,
+  UserStrategyInstance,
+  RiskControlEvent,
+  RiskEventType,
+  ExchangeCredentials as TradingExchangeCredentials,
+  TradeHistoryRecord,
+  PortfolioSnapshot,
+  PortfolioPosition,
+  StrategyPerformanceMetrics as StrategyDailyMetrics,
+  CreateStrategyTemplateDto,
+  UpdateStrategyTemplateDto,
+  InstantiateStrategyDto,
+  UpdateStrategyInstanceDto,
+  StrategyTemplateFilters,
+  StrategyInstanceFilters
+} from './types/strategy-template';
+
+export {
+  TemplateParameterSchema,
+  RiskProfileSchema,
+  PerformanceMetricsSchema,
+  CreateStrategyTemplateSchema,
+  InstantiateStrategySchema,
+  UpdateStrategyInstanceSchema
+} from './types/strategy-template';
 
 // Export workflow types
 export type {

@@ -1,12 +1,27 @@
 import { z } from 'zod';
 
-// Agent分类枚举
+// Agent分类枚举 - Trading focused categories
 export enum AgentCategory {
-  WORK = 'work',
-  PROCESS = 'process', 
-  PUBLISH = 'publish',
-  VALIDATE = 'validate'
+  // New trading-focused names
+  MONITOR = 'monitor',   // Collect market data and on-chain information
+  ANALYZE = 'analyze',   // Generate trading signals and analyze data
+  EXECUTE = 'execute',   // Execute trades and manage positions
+  VERIFY = 'verify',     // Validate execution and monitor risk
+  
+  // Legacy names for backward compatibility (deprecated)
+  WORK = 'monitor',      // @deprecated Use MONITOR instead
+  PROCESS = 'analyze',   // @deprecated Use ANALYZE instead
+  PUBLISH = 'execute',   // @deprecated Use EXECUTE instead
+  VALIDATE = 'verify'    // @deprecated Use VERIFY instead
 }
+
+// Backward compatibility aliases for migration
+export const AgentCategoryAliases: Record<string, AgentCategory> = {
+  work: AgentCategory.MONITOR,
+  process: AgentCategory.ANALYZE,
+  publish: AgentCategory.EXECUTE,
+  validate: AgentCategory.VERIFY
+};
 
 // Agent状态枚举
 export enum AgentStatus {
@@ -97,9 +112,9 @@ export interface AgentConfig {
   schedule?: ScheduleConfig;
   resources: ResourceAllocation;
   settings: Record<string, any>;
-  // Work Agent特定配置
+  // Monitor Agent特定配置
   dataSources?: any[];
-  // Process Agent特定配置
+  // Analyze Agent特定配置
   processingRules?: any[];
   // 其他可选配置
   [key: string]: any;

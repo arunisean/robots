@@ -67,10 +67,10 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       } else {
         console.log('⚠️  Redis not available, using memory storage as fallback');
         // Temporary in-memory storage for development
-        if (!global.nonceStore) {
-          global.nonceStore = new Map();
+        if (!(global as any).nonceStore) {
+          (global as any).nonceStore = new Map();
         }
-        global.nonceStore.set(nonceKey, { nonce, expiresAt: Date.now() + 300000 });
+        (global as any).nonceStore.set(nonceKey, { nonce, expiresAt: Date.now() + 300000 });
         console.log('✅ Nonce stored in memory storage');
       }
 
@@ -158,14 +158,14 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       } else {
         // Fallback to memory storage
         console.log('Using memory storage fallback');
-        if (global.nonceStore && global.nonceStore.has(nonceKey)) {
-          const nonceData = global.nonceStore.get(nonceKey);
+        if ((global as any).nonceStore && (global as any).nonceStore.has(nonceKey)) {
+          const nonceData = (global as any).nonceStore.get(nonceKey);
           if (nonceData.expiresAt > Date.now()) {
             storedNonce = nonceData.nonce;
             console.log('Stored Nonce (Memory):', storedNonce);
           } else {
             console.log('Nonce expired in memory storage');
-            global.nonceStore.delete(nonceKey);
+            (global as any).nonceStore.delete(nonceKey);
           }
         } else {
           console.log('No nonce found in memory storage');
@@ -258,8 +258,8 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
         console.log('Nonce deleted from Redis:', nonceKey);
       } else {
         // Clean up from memory storage
-        if (global.nonceStore && global.nonceStore.has(nonceKey)) {
-          global.nonceStore.delete(nonceKey);
+        if ((global as any).nonceStore && (global as any).nonceStore.has(nonceKey)) {
+          (global as any).nonceStore.delete(nonceKey);
           console.log('Nonce deleted from memory storage:', nonceKey);
         } else {
           console.log('No nonce to delete from memory storage');
@@ -415,9 +415,9 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       return reply.send(response);
     } catch (error) {
       console.error('\n=== Backend Web3 Login Verification Failed ===');
-      console.error('Error Type:', error.constructor.name);
-      console.error('Error Message:', error.message);
-      console.error('Error Stack:', error.stack);
+      console.error('Error Type:', error instanceof Error ? error.constructor.name : typeof error);
+      console.error('Error Message:', error instanceof Error ? error.message : String(error));
+      console.error('Error Stack:', error instanceof Error ? error.stack : 'No stack trace');
       console.error('Request Data:', {
         walletAddress,
         signatureLength: signature?.length,

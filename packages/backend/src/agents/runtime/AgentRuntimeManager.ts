@@ -1,7 +1,7 @@
 import { EventEmitter } from 'events';
 import { AgentSandbox, ResourceUsage } from './AgentSandbox';
 import { IAgent } from '../base/IAgent';
-import { ResourceAllocation, ExecutionMetrics, AgentStatus } from '@multi-agent-platform/shared';
+import { ResourceAllocation, ExecutionMetrics, AgentStatus, AgentCategory } from '@multi-agent-platform/shared';
 import { Logger } from '../../utils/logger';
 import { getErrorMessage } from '../../utils/error-handler';
 import { MetricsCollector } from './MetricsCollector';
@@ -381,13 +381,17 @@ export class AgentRuntimeManager extends EventEmitter {
 
     // Category-specific defaults
     switch (agent.category) {
-      case 'work':
+      case AgentCategory.MONITOR:
+      case AgentCategory.WORK:
         return { ...defaults, memory: 256, timeout: 300 };
-      case 'process':
+      case AgentCategory.ANALYZE:
+      case AgentCategory.PROCESS:
         return { ...defaults, memory: 512, cpu: 1, timeout: 600 };
-      case 'publish':
+      case AgentCategory.EXECUTE:
+      case AgentCategory.PUBLISH:
         return { ...defaults, memory: 256, timeout: 180 };
-      case 'validate':
+      case AgentCategory.VERIFY:
+      case AgentCategory.VALIDATE:
         return { ...defaults, memory: 384, timeout: 240 };
       default:
         return defaults;
