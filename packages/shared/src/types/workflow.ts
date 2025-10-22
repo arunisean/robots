@@ -38,6 +38,7 @@ export interface WorkflowAgent {
 export interface WorkflowDefinition {
   nodes: WorkflowAgent[];
   connections: WorkflowConnection[];
+  decisionConfig?: any; // Optional conditional execution rules (DecisionConfig from strategy-template)
 }
 
 /**
@@ -58,6 +59,7 @@ export interface WorkflowSettings {
   retryPolicy: RetryPolicy;
   errorHandling: ErrorHandlingPolicy;
   logging: LoggingPolicy;
+  riskControls?: any; // Optional risk control configuration (RiskControlConfig from strategy-template)
 }
 
 /**
@@ -344,6 +346,19 @@ export interface ExecutionOptions {
   stopAtAgent?: string;
   timeout?: number;
   retryPolicy?: Partial<RetryPolicy>;
+  paperTrading?: boolean; // Enable paper trading mode (simulated execution)
+  virtualPortfolio?: VirtualPortfolio; // Virtual portfolio for paper trading
+}
+
+/**
+ * Virtual portfolio for paper trading
+ */
+export interface VirtualPortfolio {
+  userId: string;
+  balance: number; // Available balance in base currency
+  positions: VirtualPosition[];
+  totalValue: number; // Total portfolio value
+  currency: string; // Base currency (e.g., 'USDT')
 }
 
 /**

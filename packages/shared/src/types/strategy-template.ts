@@ -117,14 +117,15 @@ export interface AnalyzeStageConfig {
 export interface DecisionConfig {
   rules: DecisionRule[];
   operator: 'AND' | 'OR';
+  description?: string;
 }
 
 // Decision rule
 export interface DecisionRule {
   field: string; // path to value in analyze output, e.g., "signal.confidence"
-  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'between';
-  value: number | number[]; // single value or [min, max] for between
-  description: string;
+  operator: 'gt' | 'lt' | 'eq' | 'gte' | 'lte' | 'between' | 'ne';
+  value: number | number[] | string | boolean; // single value or [min, max] for between
+  description?: string;
 }
 
 // Execute stage configuration
