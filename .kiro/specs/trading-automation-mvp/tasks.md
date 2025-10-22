@@ -171,8 +171,8 @@ This implementation plan transforms the Multi-Agent Automation Platform into a W
     - Reset execution state when switching modes
     - _Requirements: 7.6_
 
-- [ ] 8. Build Binance exchange integration
-  - [ ] 8.1 Create Binance API client wrapper
+- [-] 8. Build Binance exchange integration
+  - [x] 8.1 Create Binance API client wrapper
     - Implement authentication with API key and secret
     - Implement spot trading endpoints (market order, limit order)
     - Implement price query endpoints
@@ -180,7 +180,7 @@ This implementation plan transforms the Multi-Agent Automation Platform into a W
     - Handle API rate limiting with request throttling
     - _Requirements: 13.4, 13.5_
   
-  - [ ] 8.2 Implement credential management
+  - [x] 8.2 Implement credential management
     - Create API endpoint for users to add Binance credentials
     - Encrypt API key and secret using AES-256
     - Store encrypted credentials in exchange_credentials table
