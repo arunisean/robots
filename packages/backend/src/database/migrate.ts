@@ -7,11 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT || '5432'),
-  database: process.env.DB_NAME || 'multi_agent_platform',
-  user: process.env.DB_USER || process.env.USER,
-  password: process.env.DB_PASSWORD,
+  connectionString: process.env.DATABASE_URL || 'postgresql://postgres:postgres@localhost:5432/multi_agent_platform',
 });
 
 async function runMigrations() {

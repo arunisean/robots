@@ -25,6 +25,7 @@ export function useAuth(): UseAuthReturn {
   const { wallet, signMessage } = useWalletConnect();
   const eventListenersRef = useRef<((event: AuthStateChangeEvent) => void)[]>([]);
   const authStateUnsubscribeRef = useRef<(() => void) | null>(null);
+  const loginInProgressRef = useRef<Promise<AuthResult> | null>(null); // 防止重复登录
 
   // 初始化
   useEffect(() => {
@@ -36,13 +37,15 @@ export function useAuth(): UseAuthReturn {
     };
   }, []);
 
-  // 监听钱包状态变化
+  // 完全禁用自动登出 - 让用户手动控制
+  // 这避免了状态同步问题导致的意外登出
   useEffect(() => {
-    if (!wallet.isConnected && auth.isAuthenticated) {
-      // 钱包断开连接时自动登出
-      logout();
-    }
-  }, [wallet.isConnected, auth.isAuthenticated]);
+    console.log('🔐 Auth state:', {
+      isAuthenticated: auth.isAuthenticated,
+      walletConnected: wallet.isConnected,
+      walletAddress: wallet.address
+    });
+  }, [wallet.isConnected, auth.isAuthenticated, wallet.address]);
 
   // 初始化认证状态
   const initializeAuth = useCallback(async () => {
@@ -53,29 +56,21 @@ export function useAuth(): UseAuthReturn {
         const token = authService.getToken();
         const expiresAt = authService.getTokenExpirationTime();
 
-        // 验证token是否仍然有效
-        if (authService.isTokenValid()) {
-          setAuth({
-            isAuthenticated: true,
-            isAuthenticating: false,
-            token,
-            user,
-            expiresAt,
-            error: null,
-          });
+        // 直接恢复认证状态，不管token是否过期
+        // 如果token过期，后续API调用会处理
+        setAuth({
+          isAuthenticated: true,
+          isAuthenticating: false,
+          token,
+          user,
+          expiresAt,
+          error: null,
+        });
 
-          // 验证token（可选，用于获取最新用户信息）
-          authService.verifyToken().catch(error => {
-            console.warn('Token verification failed:', error);
-          });
-        } else {
-          // token已过期，尝试刷新
-          const refreshed = await authService.refreshToken();
-          if (!refreshed) {
-            // 刷新失败，清理认证状态
-            await authService.logout();
-          }
-        }
+        console.log('🔐 Auth restored from storage:', {
+          user: user?.walletAddress,
+          tokenValid: authService.isTokenValid()
+        });
       }
     } catch (error) {
       console.error('Failed to initialize auth:', error);
@@ -136,66 +131,99 @@ export function useAuth(): UseAuthReturn {
     }
   }, []);
 
-  // 登录
-  const login = useCallback(async (credentials?: Partial<AuthCredentials>): Promise<AuthResult> => {
-    if (auth.isAuthenticating) {
-      return { success: false, error: 'Authentication already in progress' };
+  // 登录 - 带防重复机制
+  const login = useCallback(async (credentials?: Partial<AuthCredentials> & { walletAddress?: string }): Promise<AuthResult> => {
+    // 如果已经有登录在进行中，返回同一个Promise
+    if (loginInProgressRef.current) {
+      console.log('🔐 Login already in progress, returning existing promise');
+      return loginInProgressRef.current;
     }
 
-    if (!wallet.isConnected || !wallet.address) {
-      return { success: false, error: 'Wallet not connected' };
+    const effectiveAddress = credentials?.walletAddress || wallet.address;
+    
+    console.log('🔐 Login function called');
+    console.log('- isAuthenticating:', auth.isAuthenticating);
+    console.log('- wallet.isConnected:', wallet.isConnected);
+    console.log('- wallet.address:', wallet.address);
+    console.log('- provided walletAddress:', credentials?.walletAddress);
+    console.log('- effective address:', effectiveAddress);
+    
+    if (auth.isAuthenticated) {
+      console.log('🔐 Login aborted: already authenticated');
+      return { success: true };
     }
 
+    if (!effectiveAddress) {
+      console.log('🔐 Login aborted: no wallet address available');
+      return { success: false, error: 'Wallet address not available' };
+    }
+
+    console.log('🔐 Setting auth state to authenticating...');
     setAuth(prev => ({ ...prev, isAuthenticating: true, error: null }));
 
-    try {
-      // 如果没有提供完整凭据，执行完整的登录流程
-      if (!credentials?.signature || !credentials?.message) {
-        return await performFullLogin();
+    // 创建登录Promise并保存引用
+    const loginPromise = (async () => {
+      try {
+        // 如果没有提供完整凭据，执行完整的登录流程
+        if (!credentials?.signature || !credentials?.message) {
+          console.log('🔐 Starting full login flow with address:', effectiveAddress);
+          return await performFullLogin(effectiveAddress);
+        }
+
+        // 使用提供的凭据登录
+        const fullCredentials: AuthCredentials = {
+          walletAddress: effectiveAddress,
+          signature: credentials.signature,
+          message: credentials.message,
+          chainId: wallet.chainId || 1,
+        };
+
+        return await authService.login(fullCredentials);
+      } catch (error: any) {
+        console.error('Login failed:', error);
+        
+        setAuth(prev => ({
+          ...prev,
+          isAuthenticating: false,
+          error: {
+            type: 'SIGNATURE_ERROR',
+            message: error.message || 'Login failed',
+            retryable: true,
+          },
+        }));
+
+        return { success: false, error: error.message || 'Login failed' };
+      } finally {
+        // 清除登录引用
+        loginInProgressRef.current = null;
       }
+    })();
 
-      // 使用提供的凭据登录
-      const fullCredentials: AuthCredentials = {
-        walletAddress: wallet.address,
-        signature: credentials.signature,
-        message: credentials.message,
-        chainId: wallet.chainId || 1,
-      };
-
-      return await authService.login(fullCredentials);
-    } catch (error: any) {
-      console.error('Login failed:', error);
-      
-      setAuth(prev => ({
-        ...prev,
-        isAuthenticating: false,
-        error: {
-          type: 'SIGNATURE_ERROR',
-          message: error.message || 'Login failed',
-          retryable: true,
-        },
-      }));
-
-      return { success: false, error: error.message || 'Login failed' };
-    }
-  }, [auth.isAuthenticating, wallet.isConnected, wallet.address, wallet.chainId]);
+    loginInProgressRef.current = loginPromise;
+    return loginPromise;
+  }, [auth.isAuthenticating, auth.isAuthenticated, wallet.isConnected, wallet.address, wallet.chainId]);
 
   // 执行完整登录流程
-  const performFullLogin = useCallback(async (): Promise<AuthResult> => {
-    if (!wallet.address) {
+  const performFullLogin = useCallback(async (walletAddress?: string): Promise<AuthResult> => {
+    const effectiveAddress = walletAddress || wallet.address;
+    
+    if (!effectiveAddress) {
       throw new Error('Wallet address not available');
     }
 
     try {
+      console.log('🔐 Getting nonce for address:', effectiveAddress);
       // 1. 获取nonce
-      const nonceResponse: NonceResponse = await authService.getNonce(wallet.address);
+      const nonceResponse: NonceResponse = await authService.getNonce(effectiveAddress);
+      console.log('🔐 Nonce received, requesting signature...');
       
       // 2. 请求用户签名
       const signature = await signMessage(nonceResponse.message);
+      console.log('🔐 Signature received, submitting authentication...');
       
       // 3. 提交认证
       const credentials: AuthCredentials = {
-        walletAddress: wallet.address,
+        walletAddress: effectiveAddress,
         signature,
         message: nonceResponse.message,
         chainId: wallet.chainId || 1,

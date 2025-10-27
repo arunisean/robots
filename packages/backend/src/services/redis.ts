@@ -1,4 +1,4 @@
-import Redis from 'redis';
+import * as Redis from 'redis';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 

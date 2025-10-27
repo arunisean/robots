@@ -1,11 +1,11 @@
 import { WEB3_CONFIG } from '../config/web3';
-import type { 
-  AuthCredentials, 
-  AuthResult, 
-  NonceResponse, 
-  User, 
+import type {
+  AuthCredentials,
+  AuthResult,
+  NonceResponse,
+  User,
   AuthError,
-  AuthStateChangeEvent 
+  AuthStateChangeEvent
 } from '../types/web3';
 
 export class AuthService {
@@ -76,7 +76,7 @@ export class AuthService {
       // 存储认证信息
       this.token = data.token;
       this.user = data.user;
-      
+
       // 计算过期时间（JWT通常有7天有效期）
       const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
@@ -97,11 +97,11 @@ export class AuthService {
       };
     } catch (error) {
       console.error('Login failed:', error);
-      
+
       // 触发认证失败事件
       const authError = this.createAuthError('SERVER_ERROR', 'Login failed', error);
       this.emitAuthEvent('AUTH_FAILED', { error: authError });
-      
+
       return {
         success: false,
         error: authError.message,
@@ -114,20 +114,26 @@ export class AuthService {
     try {
       // 如果有token，通知服务器登出
       if (this.token) {
-        await fetch(`${WEB3_CONFIG.API_ENDPOINTS.BASE_URL}${WEB3_CONFIG.API_ENDPOINTS.AUTH.LOGOUT}`, {
-          method: 'POST',
-          headers: {
-            'Authorization': `Bearer ${this.token}`,
-            'Content-Type': 'application/json',
-          },
-        }).catch(error => {
+        try {
+          const response = await fetch(`${WEB3_CONFIG.API_ENDPOINTS.BASE_URL}${WEB3_CONFIG.API_ENDPOINTS.AUTH.LOGOUT}`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${this.token}`,
+              'Content-Type': 'application/json',
+            },
+          });
+
+          if (!response.ok) {
+            console.warn(`Logout request failed with status ${response.status}`);
+          }
+        } catch (error) {
           console.warn('Failed to notify server of logout:', error);
-        });
+        }
       }
     } finally {
       // 清理本地状态
       this.clearAuth();
-      
+
       // 触发登出事件
       this.emitAuthEvent('AUTH_LOGOUT', {});
     }
@@ -146,6 +152,7 @@ export class AuthService {
           'Authorization': `Bearer ${this.token}`,
           'Content-Type': 'application/json',
         },
+        body: JSON.stringify({}), // 发送空对象作为body
       });
 
       if (!response.ok) {
@@ -157,21 +164,21 @@ export class AuthService {
       if (data.success && data.token) {
         this.token = data.token;
         this.saveAuthToStorage();
-        
+
         // 触发token刷新事件
         this.emitAuthEvent('TOKEN_REFRESHED', { token: this.token });
-        
+
         return true;
       }
 
       return false;
     } catch (error) {
       console.error('Failed to refresh token:', error);
-      
-      // token刷新失败，可能已过期，清理认证状态
-      this.clearAuth();
-      this.emitAuthEvent('AUTH_LOGOUT', {});
-      
+
+      // token刷新失败，可能已过期，不要自动清理认证状态
+      // 让用户保持登录状态，只是token刷新失败
+      console.warn('Token refresh failed, but keeping user logged in');
+
       return false;
     }
   }
@@ -195,7 +202,7 @@ export class AuthService {
       }
 
       const data = await response.json();
-      
+
       if (data.success && data.user) {
         // 更新用户信息
         this.user = data.user;
@@ -233,7 +240,7 @@ export class AuthService {
       // 简单的JWT解析（仅用于检查过期时间）
       const payload = JSON.parse(atob(this.token.split('.')[1]));
       const now = Math.floor(Date.now() / 1000);
-      
+
       return payload.exp > now;
     } catch (error) {
       return false;
@@ -255,7 +262,7 @@ export class AuthService {
   // 添加认证状态变化监听器
   onAuthStateChange(callback: (event: AuthStateChangeEvent) => void): () => void {
     this.eventListeners.push(callback);
-    
+
     // 返回取消监听的函数
     return () => {
       const index = this.eventListeners.indexOf(callback);
@@ -276,7 +283,7 @@ export class AuthService {
       if (storedToken && storedUser) {
         this.token = storedToken;
         this.user = JSON.parse(storedUser);
-        
+
         // 验证存储的token是否仍然有效
         if (!this.isTokenValid()) {
           this.clearAuth();
@@ -296,7 +303,7 @@ export class AuthService {
       if (this.token) {
         localStorage.setItem(WEB3_CONFIG.AUTH_CONFIG.TOKEN_STORAGE_KEY, this.token);
       }
-      
+
       if (this.user) {
         localStorage.setItem(WEB3_CONFIG.AUTH_CONFIG.USER_STORAGE_KEY, JSON.stringify(this.user));
       }
@@ -309,13 +316,13 @@ export class AuthService {
   private clearAuth(): void {
     this.token = null;
     this.user = null;
-    
+
     // 清理定时器
     if (this.refreshTimer) {
       clearTimeout(this.refreshTimer);
       this.refreshTimer = null;
     }
-    
+
     // 清理本地存储
     if (typeof window !== 'undefined') {
       localStorage.removeItem(WEB3_CONFIG.AUTH_CONFIG.TOKEN_STORAGE_KEY);
@@ -339,7 +346,7 @@ export class AuthService {
 
     // 在token过期前5分钟刷新
     const refreshTime = expirationTime.getTime() - Date.now() - WEB3_CONFIG.AUTH_CONFIG.TOKEN_REFRESH_BUFFER;
-    
+
     if (refreshTime > 0) {
       this.refreshTimer = setTimeout(async () => {
         const success = await this.refreshToken();

@@ -480,7 +480,7 @@ export const authRoutes: FastifyPluginAsync = async (fastify) => {
       try {
         await request.jwtVerify();
       } catch (err) {
-        reply.send({ success: false, error: 'Invalid token' });
+        return reply.status(401).send({ success: false, error: 'Invalid token' });
       }
     }
   }, async (request, reply) => {

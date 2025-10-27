@@ -1,143 +1,65 @@
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
-import jwt from '@fastify/jwt';
-import { config } from './config';
-import { logger } from './utils/logger';
+import { strategyTemplateRoutes } from './routes/strategy-templates';
 
-// 创建Fastify实例
+/**
+ * Simple server for demo purposes - no database required
+ */
+
 const fastify = Fastify({
   logger: {
-    level: config.LOG_LEVEL,
+    level: 'info',
   },
 });
 
-// 注册插件
-async function registerPlugins() {
-  // CORS
-  await fastify.register(cors, {
-    origin: config.CORS_ORIGINS,
-    credentials: true,
-  });
-
-  // JWT
-  await fastify.register(jwt, {
-    secret: config.JWT_SECRET,
-  });
-
-  logger.info('Running in simplified mode without database');
-}
-
-// 简化的路由
-async function registerRoutes() {
-  // 健康检查
-  fastify.get('/health', async (request, reply) => {
-    return { 
-      status: 'ok', 
-      mode: 'simplified',
-      timestamp: new Date().toISOString(),
-      version: process.env.npm_package_version || '1.0.0'
-    };
-  });
-
-  // 基本API路由
-  fastify.get('/api/status', async (request, reply) => {
-    return {
-      message: '多Agent自动化平台 API',
-      status: 'running',
-      mode: 'development',
-      features: {
-        database: false,
-        redis: false,
-        agents: false
-      }
-    };
-  });
-
-  // 模拟认证路由
-  fastify.post('/api/auth/nonce', async (request, reply) => {
-    const nonce = Math.random().toString(36).substring(2, 15);
-    return {
-      nonce,
-      message: `Sign this message to authenticate: ${nonce}`
-    };
-  });
-
-  fastify.post('/api/auth/login', async (request, reply) => {
-    // 简化的登录逻辑
-    const token = fastify.jwt.sign({ 
-      walletAddress: '0x1234567890123456789012345678901234567890',
-      userId: 'demo-user'
-    });
-    
-    return {
-      success: true,
-      token,
-      user: {
-        id: 'demo-user',
-        walletAddress: '0x1234567890123456789012345678901234567890'
-      }
-    };
-  });
-
-  // 模拟Agent路由
-  fastify.get('/api/agents', async (request, reply) => {
-    return {
-      agents: [
-        {
-          id: 'demo-work-agent',
-          name: 'Demo Work Agent',
-          type: 'work',
-          status: 'active',
-          description: '演示数据采集Agent'
-        },
-        {
-          id: 'demo-process-agent',
-          name: 'Demo Process Agent',
-          type: 'process',
-          status: 'active',
-          description: '演示数据处理Agent'
-        }
-      ]
-    };
-  });
-}
-
-// 启动服务器
 async function start() {
   try {
-    await registerPlugins();
-    await registerRoutes();
-
-    const address = await fastify.listen({
-      port: config.PORT,
-      host: config.HOST,
+    // Register CORS
+    await fastify.register(cors, {
+      origin: ['http://localhost:3000', 'http://127.0.0.1:3000'],
+      credentials: true,
     });
 
-    logger.info(`🚀 Server listening at ${address}`);
-    logger.info('📝 Available endpoints:');
-    logger.info('  - GET  /health');
-    logger.info('  - GET  /api/status');
-    logger.info('  - POST /api/auth/nonce');
-    logger.info('  - POST /api/auth/login');
-    logger.info('  - GET  /api/agents');
+    // Register strategy template routes
+    await fastify.register(strategyTemplateRoutes);
+
+    // Health check
+    fastify.get('/health', async (request, reply) => {
+      return { 
+        status: 'ok', 
+        timestamp: new Date().toISOString(),
+        version: '1.0.0',
+        mode: 'simple'
+      };
+    });
+
+    // Start server
+    const port = process.env.PORT ? parseInt(process.env.PORT) : 3001;
+    const host = process.env.HOST || '0.0.0.0';
+
+    await fastify.listen({ port, host });
+    
+    console.log('🚀 Simple server started successfully!');
+    console.log(`📡 Server running at: http://localhost:${port}`);
+    console.log('📊 Strategy templates API available at: /api/strategy-templates');
+    console.log('🏥 Health check: /health');
+    console.log();
+    console.log('🧪 Test the API:');
+    console.log(`   curl http://localhost:${port}/api/strategy-templates`);
+    console.log();
+    console.log('🌐 Frontend: http://localhost:3000/strategies');
+    
   } catch (error) {
-    logger.error('Error starting server:', error);
+    console.error('❌ Error starting server:', error);
     process.exit(1);
   }
 }
 
-// 优雅关闭
+// Handle graceful shutdown
 process.on('SIGINT', async () => {
-  logger.info('Received SIGINT, shutting down gracefully...');
+  console.log('\n🛑 Shutting down server...');
   await fastify.close();
   process.exit(0);
 });
 
-process.on('SIGTERM', async () => {
-  logger.info('Received SIGTERM, shutting down gracefully...');
-  await fastify.close();
-  process.exit(0);
-});
-
-// 启动应用
 start();

@@ -34,6 +34,7 @@ export function WalletProvider({
   const auth = useAuth();
   const [isInitialized, setIsInitialized] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const autoLoginAttemptedRef = React.useRef(false);
 
   // Initialize
   useEffect(() => {
@@ -52,7 +53,7 @@ export function WalletProvider({
         setError(null);
       }
     }
-  }, [wallet.wallet.isConnected, wallet.wallet.chainId, supportedChains, onError]);
+  }, [wallet.wallet.isConnected, wallet.wallet.address, wallet.wallet.chainId, supportedChains, onError]);
 
   // Listen to authentication state changes
   useEffect(() => {
@@ -228,12 +229,19 @@ export function AuthGuard({
 
   if (requireWallet && !wallet.wallet.isConnected) {
     return fallback || (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center max-w-md">
+          <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
           </svg>
-          <p className="text-gray-600 mb-4">Please connect your wallet first</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Wallet Required</h2>
+          <p className="text-gray-600 mb-6">Please connect your wallet to access this page</p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Go to Home
+          </a>
         </div>
       </div>
     );
@@ -241,12 +249,19 @@ export function AuthGuard({
 
   if (requireAuth && !auth.auth.isAuthenticated) {
     return fallback || (
-      <div className="flex items-center justify-center p-8">
-        <div className="text-center">
-          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-8">
+        <div className="text-center max-w-md">
+          <svg className="w-16 h-16 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
           </svg>
-          <p className="text-gray-600 mb-4">Please complete authentication first</p>
+          <h2 className="text-2xl font-bold text-gray-900 mb-2">Authentication Required</h2>
+          <p className="text-gray-600 mb-6">Please connect your wallet and sign in to access this page</p>
+          <a
+            href="/"
+            className="inline-block px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+          >
+            Go to Home
+          </a>
         </div>
       </div>
     );

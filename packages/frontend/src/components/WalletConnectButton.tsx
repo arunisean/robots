@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useWalletConnect } from '../hooks/useWalletConnect';
-import { useAuth } from '../hooks/useAuth';
+import { useWallet } from './WalletProvider';
 import { WalletType, ERROR_MESSAGES, formatAddress, SUPPORTED_WALLETS } from '../config/web3';
 import type { WalletInfo } from '../config/web3';
 
@@ -26,9 +27,11 @@ export function WalletConnectButton({
   onError,
 }: WalletConnectButtonProps) {
   const { wallet, connect, disconnect } = useWalletConnect();
-  const { auth, login } = useAuth();
+  const { auth: authContext } = useWallet(); // 从context获取auth，避免创建新实例
+  const { auth, login } = authContext;
   const [showWalletSelector, setShowWalletSelector] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [loginAttempted, setLoginAttempted] = useState(false); // 防止重复登录
 
   // 处理连接钱包
   const handleConnect = useCallback(async (walletType?: WalletType) => {
@@ -37,18 +40,41 @@ export function WalletConnectButton({
 
     try {
       const result = await connect({ type: walletType });
-      
+
       if (result.success && result.address) {
         onConnected?.(result.address);
-        
-        // 如果启用自动登录，尝试登录
-        if (autoLogin && !auth.isAuthenticated) {
+
+        // 如果启用自动登录，尝试登录（只尝试一次）
+        if (autoLogin && !auth.isAuthenticated && !auth.isAuthenticating && !loginAttempted) {
+          console.log('🔐 Starting auto login process...');
+          console.log('- Wallet connected:', result.address);
+          console.log('- Auth status:', auth.isAuthenticated);
+          console.log('- Auth authenticating:', auth.isAuthenticating);
+
+          setLoginAttempted(true); // 标记已尝试登录
+
           try {
-            await login();
+            // 直接传递钱包地址，不依赖hook状态
+            const loginResult = await login({ walletAddress: result.address });
+            console.log('🔐 Auto login result:', loginResult);
+
+            if (!loginResult.success) {
+              console.error('🔐 Auto login failed:', loginResult.error);
+              onError?.(loginResult.error || 'Login failed');
+              setLoginAttempted(false); // 失败后允许重试
+            }
           } catch (error: any) {
-            console.warn('Auto login failed:', error);
+            console.error('🔐 Auto login exception:', error);
             onError?.(error.message || 'Login failed');
+            setLoginAttempted(false); // 失败后允许重试
           }
+        } else {
+          console.log('🔐 Auto login skipped:', {
+            autoLogin,
+            isAuthenticated: auth.isAuthenticated,
+            isAuthenticating: auth.isAuthenticating,
+            loginAttempted
+          });
         }
       } else if (result.error) {
         const errorMessage = ERROR_MESSAGES[result.error.type]?.message || result.error.message;
@@ -65,9 +91,13 @@ export function WalletConnectButton({
   // 处理断开连接
   const handleDisconnect = useCallback(async () => {
     setIsLoading(true);
-    
+
     try {
       await disconnect();
+      // 断开钱包时同时登出
+      if (auth.isAuthenticated) {
+        await authContext.logout();
+      }
       onDisconnected?.();
     } catch (error: any) {
       console.error('Disconnect failed:', error);
@@ -75,12 +105,12 @@ export function WalletConnectButton({
     } finally {
       setIsLoading(false);
     }
-  }, [disconnect, onDisconnected, onError]);
+  }, [disconnect, auth.isAuthenticated, authContext, onDisconnected, onError]);
 
   // 获取按钮样式
   const getButtonStyles = () => {
     const baseStyles = 'inline-flex items-center justify-center font-medium rounded-lg transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed';
-    
+
     const sizeStyles = {
       sm: 'px-3 py-2 text-sm',
       md: 'px-4 py-2 text-base',
@@ -136,7 +166,7 @@ export function WalletConnectButton({
           </span>
         )}
       </div>
-      
+
       <button
         onClick={handleDisconnect}
         disabled={isLoading}
@@ -152,7 +182,7 @@ export function WalletConnectButton({
 
   // 渲染钱包选择器
   const renderWalletSelector = () => {
-    if (!showWalletSelector) return null;
+    if (!showWalletSelector || typeof document === 'undefined') return null;
 
     const wallets: WalletInfo[] = [
       {
@@ -177,9 +207,16 @@ export function WalletConnectButton({
       },
     ];
 
-    return (
-      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+    const modalContent = (
+      <div
+        className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+        onClick={() => setShowWalletSelector(false)}
+        style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
+      >
+        <div
+          className="bg-white rounded-lg p-6 max-w-md w-full shadow-xl"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold">Select Wallet</h3>
             <button
@@ -203,7 +240,7 @@ export function WalletConnectButton({
                   <span className="text-2xl">{wallet.icon}</span>
                   <span className="font-medium">{wallet.name}</span>
                 </div>
-                
+
                 {wallet.installed ? (
                   <span className="text-sm text-green-600">Installed</span>
                 ) : (
@@ -219,6 +256,8 @@ export function WalletConnectButton({
         </div>
       </div>
     );
+
+    return createPortal(modalContent, document.body);
   };
 
   // 渲染错误状态
@@ -226,7 +265,7 @@ export function WalletConnectButton({
     if (!wallet.error) return null;
 
     const errorInfo = ERROR_MESSAGES[wallet.error.type];
-    
+
     return (
       <div className="mt-2 p-3 bg-red-50 border border-red-200 rounded-lg">
         <div className="flex items-start">
@@ -265,10 +304,12 @@ export function WalletConnectButton({
   };
 
   return (
-    <div>
-      {wallet.isConnected ? renderConnectedState() : renderConnectButton()}
-      {renderErrorState()}
+    <>
+      <div>
+        {wallet.isConnected ? renderConnectedState() : renderConnectButton()}
+        {renderErrorState()}
+      </div>
       {renderWalletSelector()}
-    </div>
+    </>
   );
 }

@@ -351,6 +351,20 @@ export interface ExecutionOptions {
 }
 
 /**
+ * Virtual position in paper trading
+ */
+export interface VirtualPosition {
+  symbol: string;
+  quantity: number;
+  averagePrice: number;
+  currentPrice: number;
+  value: number;
+  profitLoss: number;
+  profitLossPercentage: number;
+  openedAt: Date;
+}
+
+/**
  * Virtual portfolio for paper trading
  */
 export interface VirtualPortfolio {

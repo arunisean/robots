@@ -1,7 +1,24 @@
 import React, { ReactNode } from 'react';
 import Head from 'next/head';
+import dynamic from 'next/dynamic';
 import { WalletProvider } from './WalletProvider';
-import { Navbar } from './Navbar';
+
+// Import Navbar dynamically to avoid SSR issues with wallet hooks
+const DynamicNavbar = dynamic(() => import('./Navbar').then(mod => ({ default: mod.Navbar })), {
+  ssr: false,
+  loading: () => (
+    <div className="h-16 bg-white border-b border-gray-200">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-full flex items-center">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">MA</span>
+          </div>
+          <span className="text-xl font-semibold text-gray-900">Trading Automation</span>
+        </div>
+      </div>
+    </div>
+  ),
+});
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,7 +46,7 @@ export function Layout({
 
       <WalletProvider autoConnect={true}>
         <div className="min-h-screen bg-gray-50">
-          <Navbar />
+          <DynamicNavbar />
           
           <main className="flex-1">
             {children}

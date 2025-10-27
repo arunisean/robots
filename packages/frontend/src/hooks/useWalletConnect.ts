@@ -199,11 +199,20 @@ export function useWalletConnect(): UseWalletReturn {
 
   // 签名消息
   const signMessage = useCallback(async (message: string): Promise<string> => {
-    if (!wallet.isConnected) {
-      throw new Error('Wallet not connected');
-    }
-
+    console.log('🔐 signMessage called');
+    console.log('- wallet.isConnected:', wallet.isConnected);
+    console.log('- checking walletConnectionManager...');
+    
+    // 直接检查walletConnectionManager的连接状态，而不依赖hook状态
     try {
+      const isConnected = await walletConnectionManager.isConnected();
+      console.log('- walletConnectionManager.isConnected():', isConnected);
+      
+      if (!isConnected) {
+        throw new Error('Wallet not connected');
+      }
+      
+      console.log('🔐 Requesting signature from walletConnectionManager...');
       return await walletConnectionManager.signMessage(message);
     } catch (error: any) {
       console.error('Sign message failed:', error);

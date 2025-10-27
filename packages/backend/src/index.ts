@@ -11,6 +11,7 @@ import { workflowsPublicRoutes } from './routes/workflows-public';
 import { executionRoutes } from './routes/executions';
 import { userRoutes } from './routes/users';
 import { websocketRoutes } from './routes/websocket';
+import { strategyTemplateRoutes } from './routes/strategy-templates';
 import { DatabaseService } from './services/database';
 import { RedisService } from './services/redis';
 import { AgentFactory } from './agents/factory/AgentFactory';
@@ -104,6 +105,11 @@ async function registerRoutes() {
   await fastify.register(workflowsPublicRoutes, { prefix: '/api/public/workflows' });
   await fastify.register(executionRoutes, { prefix: '/api/executions' });
   await fastify.register(websocketRoutes, { prefix: '/api' });
+  await fastify.register(strategyTemplateRoutes);
+  
+  // Import and register strategy instances routes
+  const { strategyInstanceRoutes } = await import('./routes/strategy-instances');
+  await fastify.register(strategyInstanceRoutes);
 }
 
 // 健康检查

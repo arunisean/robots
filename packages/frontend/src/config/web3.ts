@@ -72,11 +72,11 @@ export const WEB3_CONFIG = {
   API_ENDPOINTS: {
     BASE_URL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
     AUTH: {
-      NONCE: '/auth/nonce',
-      LOGIN: '/auth/login',
-      VERIFY: '/auth/verify',
-      REFRESH: '/auth/refresh',
-      LOGOUT: '/auth/logout',
+      NONCE: '/api/auth/nonce',
+      LOGIN: '/api/auth/login',
+      VERIFY: '/api/auth/verify',
+      REFRESH: '/api/auth/refresh',
+      LOGOUT: '/api/auth/logout',
     },
   },
 } as const;
