@@ -252,6 +252,41 @@ export type {
   ExecutionSummary
 } from './types/workflow';
 
+// Export backtest system types
+export type {
+  MarketType,
+  KlineInterval,
+  MarketDataPoint,
+  HistoricalDataset,
+  PublicDatasetInfo,
+  DatasetFilters,
+  DownloadRequest,
+  DownloadJob,
+  DownloadStatus,
+  DataAvailability,
+  VerificationResult,
+  StorageStats,
+  BacktestConfig,
+  DataGeneratorConfig,
+  BacktestRequest,
+  BacktestJob,
+  BacktestTrade,
+  EquityPoint,
+  BacktestMetrics,
+  BacktestResult,
+  OptimizationRequest,
+  OptimizationJob,
+  OptimizationResult,
+  KlineQuery
+} from './types/backtest';
+
+// Re-export performance and risk metrics from backtest
+export type {
+  PerformanceMetrics as BacktestPerformanceMetrics,
+  RiskMetrics as BacktestRiskMetrics,
+  TradeStatistics as BacktestTradeStatistics
+} from './types/backtest';
+
 // Export utility functions
 export * from './utils/validation';
 export * from './utils/crypto';

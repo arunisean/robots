@@ -57,6 +57,7 @@ async function registerPlugins() {
   const dbService = new DatabaseService();
   await dbService.connect();
   fastify.decorate('db', dbService);
+  fastify.decorate('pg', { pool: dbService.getPool() }); // Expose pool for repositories
   logger.info('Database connected successfully');
 
   // Redis连接（开发模式下可选）
@@ -110,6 +111,12 @@ async function registerRoutes() {
   // Import and register strategy instances routes
   const { strategyInstanceRoutes } = await import('./routes/strategy-instances');
   await fastify.register(strategyInstanceRoutes);
+  
+  // Register data management routes
+  const { dataAdminRoutes } = await import('./routes/data-admin');
+  const { dataPublicRoutes } = await import('./routes/data-public');
+  await fastify.register(dataAdminRoutes, { prefix: '/api/admin/data' });
+  await fastify.register(dataPublicRoutes, { prefix: '/api/data' });
 }
 
 // 健康检查
